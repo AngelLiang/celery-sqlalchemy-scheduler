@@ -55,14 +55,13 @@ class ModelEntry(ScheduleEntry):
     def __init__(self, model, Session, app=None, **kw):
         """Initialize the model entry."""
         self.app = app or current_app._get_current_object()
-        self.session = kw.get('session')
+        self.session = kw.get('session')    # 为什么获取不刀kw的session？
         self.Session = Session
 
         self.model = model
         self.name = model.name
         self.task = model.task
 
-        # import pdb; pdb.set_trace()
         try:
             self.schedule = model.schedule
             debug('schedule: {}'.format(self.schedule))
@@ -121,7 +120,6 @@ class ModelEntry(ScheduleEntry):
 
     def is_due(self):
         """是否到期"""
-        # import pdb; pdb.set_trace()
         if not self.model.enabled:
             # 5 second delay for re-enable.
             return schedules.schedstate(False, 5.0)
@@ -166,6 +164,7 @@ class ModelEntry(ScheduleEntry):
         return now.replace(tzinfo=self.app.timezone)
 
     def __next__(self):
+        # should be use self._default_now() ?
         self.model.last_run_at = self.app.now()
         self.model.total_run_count += 1
         self.model.no_changes = True
@@ -199,10 +198,6 @@ class ModelEntry(ScheduleEntry):
             if isinstance(schedule, schedule_type):
                 # TODO:
                 model_schedule = model_type.from_schedule(session, schedule)
-
-                session.add(model_schedule)
-                session.commit()
-
                 return model_schedule, model_field
         raise ValueError(
             'Cannot convert schedule type {0!r} to model'.format(schedule))
@@ -236,8 +231,8 @@ class ModelEntry(ScheduleEntry):
             except Exception as exc:
                 logger.error(exc)
                 session.rollback()
-
-            return cls(periodic_task, app=app, Session=Session, sesson=session)
+            res = cls(periodic_task, app=app, Session=Session, session=session)
+            return res
 
     @classmethod
     def _unpack_fields(cls, session, schedule,

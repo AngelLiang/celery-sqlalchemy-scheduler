@@ -66,16 +66,13 @@ class IntervalSchedule(ModelBase, ModelMixin):
     @classmethod
     def from_schedule(cls, session, schedule, period=SECONDS):
         every = max(schedule.run_every.total_seconds(), 0)
-        models = session.query(IntervalSchedule).filter_by(
-            every=every, period=period).all()
-        if models:
-            # 删除多余的model
-            for model in models[1:]:
-                session.delete(model)
+        model = session.query(IntervalSchedule).filter_by(
+            every=every, period=period).first()
+        if not model:
+            model = cls(every=every, period=period)
+            session.add(model)
             session.commit()
-            return models[0]  # 返回第一个model
-        else:
-            return cls(every=every, period=period)
+        return model
 
     def period_singular(self):
         return self.period[:-1]
@@ -118,17 +115,17 @@ class CrontabSchedule(ModelBase, ModelMixin):
                 'day_of_week': schedule._orig_day_of_week,
                 'day_of_month': schedule._orig_day_of_month,
                 'month_of_year': schedule._orig_month_of_year,
-                'timezone': schedule.tz
                 }
-        models = session.query(CrontabSchedule).filter_by(**spec).all()
-        if models:
-            # 删除多余的model
-            for model in models[1:]:
-                session.delete(model)
+        if schedule.tz:
+            spec.update({
+                'timezone': schedule.tz.zone
+            })
+        model = session.query(CrontabSchedule).filter_by(**spec).first()
+        if not model:
+            model = cls(**spec)
+            session.add(model)
             session.commit()
-            return models[0]  # 返回第一个model
-        else:
-            return cls(**spec)
+        return model
 
 
 @python_2_unicode_compatible
@@ -156,15 +153,12 @@ class SolarSchedule(ModelBase, ModelMixin):
         spec = {'event': schedule.event,
                 'latitude': schedule.lat,
                 'longitude': schedule.lon}
-        models = session.query(SolarSchedule).filter_by(**spec).all()
-        if models:
-            # 删除多余的model
-            for model in models[1:]:
-                session.delete(model)
+        model = session.query(SolarSchedule).filter_by(**spec).first()
+        if not model:
+            model = cls(**spec)
+            session.add(model)
             session.commit()
-            return models[0]  # 返回第一个model
-        else:
-            return cls(**spec)
+        return model
 
     def __repr__(self):
         return '{0} ({1}, {2})'.format(
@@ -227,13 +221,13 @@ class PeriodicTask(ModelBase, ModelMixin):
         self.task = value
 
     interval_id = sa.Column(sa.ForeignKey(IntervalSchedule.id), nullable=True)
-    interval = relationship('IntervalSchedule', cascade='all')
+    interval = relationship('IntervalSchedule')
 
     crontab_id = sa.Column(sa.ForeignKey(CrontabSchedule.id), nullable=True)
-    crontab = relationship('IntervalSchedule', cascade='all')
+    crontab = relationship('IntervalSchedule')
 
     solar_id = sa.Column(sa.ForeignKey(SolarSchedule.id), nullable=True)
-    solar = relationship('IntervalSchedule', cascade='all')
+    solar = relationship('IntervalSchedule')
 
     # 参数
     args = sa.Column(sa.Text(), default='[]')
