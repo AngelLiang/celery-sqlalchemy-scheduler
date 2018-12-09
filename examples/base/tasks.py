@@ -2,11 +2,11 @@
 """
 Run Worker:
 
-    $ celery worker -A examples.tasks:celery -l info
+    $ celery worker -A tasks:celery -l info
 
 Run Beat:
 
-    $ celery beat -A examples.tasks.celery -S examples.tasks:DatabaseScheduler -l info
+    $ celery beat -A tasks:celery -S tasks:DatabaseScheduler -l info
 
 """
 from datetime import timedelta
@@ -20,7 +20,7 @@ broker_url = 'amqp://guest:guest@localhost:5672//'
 # 如果数据库修改了下面的schedule，beat重启后数据库会被下面的配置覆盖
 beat_schedule = {
     'echo-every-3-seconds': {
-        'task': 'examples.tasks.echo',
+        'task': 'tasks.echo',
         'schedule': timedelta(seconds=3),
         'args': ('hello', )
     },
@@ -41,6 +41,10 @@ beat_dburi = 'sqlite:///schedule.db'
 # 配置时区
 timezone = 'Asia/Shanghai'
 
+# 默认每个worker跑完10个任务后，自我销毁程序重建来释放内存
+# 防止内存泄漏
+worker_max_tasks_per_child = 10
+
 celery = Celery('tasks',
                 backend=backend,
                 broker=broker_url)
@@ -51,7 +55,8 @@ config = dict(
     beat_max_loop_interval=beat_max_loop_interval,
     beat_dburi=beat_dburi,
 
-    timezone=timezone
+    timezone=timezone,
+    worker_max_tasks_per_child=worker_max_tasks_per_child
 )
 
 celery.conf.update(config)
