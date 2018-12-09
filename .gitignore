@@ -113,3 +113,4 @@ dmypy.json
 # my project
 .vscode
 *.db
+*.pid
