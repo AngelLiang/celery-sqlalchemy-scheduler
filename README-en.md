@@ -2,7 +2,17 @@
 
 A scheduler based sqlalchemy for celery.
 
-# Installation
+## Getting Started
+
+### Prerequisites
+
+First you must install `celery` and `sqlalchemy`, and `celery` should be >=4.2.0.
+
+```
+$ pip install celery sqlalchemy
+```
+
+### Installing
 
 Install from source by cloning this repository:
 
@@ -29,3 +39,9 @@ This is a demo for exmaple, you can check the code in `examples` directory
    ```
    $ celery beat -A tasks -S celery_sqlalchemy_scheduler.schedulers:DatabaseScheduler -l info
    ```
+
+## Acknowledgments
+
+- [django-celery-beat](https://github.com/celery/django-celery-beat)
+- [celerybeatredis](https://github.com/liuliqiang/celerybeatredis)
+- [celery](https://github.com/celery/celery)
