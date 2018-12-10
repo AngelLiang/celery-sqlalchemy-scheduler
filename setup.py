@@ -1,14 +1,22 @@
-#!/usr/bin/env python
+"""
+    celery-sqlalchemy-scheduler
+    ~~~~~~~~~~~~~~
+    A Scheduler Based SQLalchemy For Celery.
+    :Copyright (c) 2018 AngelLiang
+    :license: MIT, see LICENSE for more details.
+"""
+from os import path
+from codecs import open
 try:
     from setuptools import find_packages, setup
 except ImportError:
     from distutils.core import setup, find_packages
 # To use a consistent encoding
 
+basedir = path.abspath(path.dirname(__file__))
 # Get the long description from the README file
-long_desc = """
-to be done!
-"""
+with open(path.join(basedir, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
 setup(
     name="celery_sqlalchemy_scheduler",
@@ -17,20 +25,21 @@ setup(
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
     version="0.0.2",
-
-    description="A Scheduler Based SQLalchemy For Celery",
-    long_description="",
-
     # The project's main homepage.
     url="https://github.com/AngelLiang/celery-sqlalchemy-scheduler",
+    # Choose your license
 
+    license='MIT',
+
+    description="A Scheduler Based SQLalchemy For Celery",
+    long_description=long_description,
+    long_description_content_type='text/markdown',  # 长描述内容类型
+
+    platforms='any',
     # Author details
     author="AngelLiang",
     author_email='',
     home_page='https://github.com/AngelLiang/celery-sqlalchemy-scheduler',
-
-    # Choose your license
-    license='MIT',
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
@@ -73,4 +82,5 @@ setup(
         "celery>=4.2.0",
         "sqlalchemy"
     ],
+    zip_safe=False,
 )
