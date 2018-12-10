@@ -38,7 +38,7 @@ setup(
     platforms='any',
     # Author details
     author="AngelLiang",
-    author_email='',
+    author_email='yannanxiu@126.com',
     home_page='https://github.com/AngelLiang/celery-sqlalchemy-scheduler',
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
