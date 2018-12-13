@@ -1,16 +1,20 @@
 # celery-sqlalchemy-scheduler
 
-一个基于 sqlalchemy 的 scheduler，作为 celery 定时任务的辅助工具。
+A Scheduler Based Sqlalchemy for Celery.
 
-## 依赖
+## Getting Started
 
-- Python 3
-- celery >= 4.2.0
-- sqlalchemy
+### Prerequisites
 
-## 安装
+First you must install `celery` and `sqlalchemy`, and `celery` should be >=4.2.0.
 
-通过 github 仓库进行安装：
+```
+$ pip install celery sqlalchemy
+```
+
+### Installing
+
+Install from source by cloning this repository:
 
 ```
 $ git clone git@github.com:AngelLiang/celery-sqlalchemy-scheduler.git
@@ -18,35 +22,33 @@ $ cd celery-sqlalchemy-scheduler
 $ python setup.py install
 ```
 
-## 快速开始
+## Usage
 
-安装`celery_sqlalchemy_scheduler`之后，你可以查看`examples`目录下的代码：
+After you have installed `celery_sqlalchemy_scheduler`, you can easily start with following steps:
 
-1. 启动 celery worker：
+This is a demo for exmaple, you can check the code in `examples` directory
+
+1. start celery worker
 
    ```
    $ celery worker -A tasks -l info
    ```
 
-2. 使用`DatabaseScheduler`作为 scheduler 启动 celery beat：
+2. start the celery beat with `DatabaseScheduler` as scheduler:
 
    ```
    $ celery beat -A tasks -S celery_sqlalchemy_scheduler.schedulers:DatabaseScheduler -l info
    ```
 
-## 使用说明
+# Description
 
-beat 启动之后，默认会在当前目录下生成名称为`schedule.db`的 sqlite 数据库。Windows 下可以使用 SQLiteStudio.exe 工具打开查看里面的数据。
+After the celery beat is started, by default it create a sqlite database(`schedule.db`) in current folder. You can use `SQLiteStudio.exe` to inspect it.
 
 ![sqlite](screenshot/sqlite.png)
 
-### 数据库同步 scheduler 到 beat
+When you want to update scheduler, you can update the data in `schedule.db`. But `celery_sqlalchemy_scheduler` don't update the scheduler immediately. Then you shoule be change the first column's `last_update` field in the `celery_periodic_task_changed` to now datetime. Finally the celery beat will update scheduler at next wake-up time.
 
-修改好数据库的 scheduler 后，`celery_sqlalchemy_scheduler`并不会马上同步数据库的数据到 beat，我们最后还需要修改`celery_periodic_task_changed`表的第一条数据，只需要把`last_update`字段更新到最新的时间即可。当 beat 在下一个“心跳”之后，就会同步数据库的数据到 beat。
-
-## 参考
-
-本工具主要参考了以下资料和源码：
+## Acknowledgments
 
 - [django-celery-beat](https://github.com/celery/django-celery-beat)
 - [celerybeatredis](https://github.com/liuliqiang/celerybeatredis)
