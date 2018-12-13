@@ -18,11 +18,9 @@ def session_cleanup(session):
     try:
         yield
     except Exception:
-        # 发生异常则回滚
         session.rollback()
         raise
     finally:
-        # 无论是否发生异常都关闭连接
         session.close()
 
 
@@ -65,13 +63,11 @@ class SessionManager(object):
             return engine, sessionmaker(bind=engine)
 
     def prepare_models(self, engine):
-        """准备models"""
         if not self.prepared:
             ModelBase.metadata.create_all(engine)
             self.prepared = True
 
     def session_factory(self, dburi, **kwargs):
-        """session工厂"""
         engine, session = self.create_session(dburi, **kwargs)
         self.prepare_models(engine)
         return session()
