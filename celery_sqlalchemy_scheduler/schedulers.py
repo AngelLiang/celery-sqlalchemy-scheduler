@@ -49,13 +49,12 @@ class ModelEntry(ScheduleEntry):
         (schedules.schedule, IntervalSchedule, 'interval'),
         (schedules.solar, SolarSchedule, 'solar'),
     )
-    # 存储的字段，以下数据库的字段会被本程序修改
     save_fields = ['last_run_at', 'total_run_count', 'no_changes']
 
     def __init__(self, model, Session, app=None, **kw):
         """Initialize the model entry."""
         self.app = app or current_app._get_current_object()
-        self.session = kw.get('session')    # 为什么获取不刀kw的session？
+        self.session = kw.get('session')
         self.Session = Session
 
         self.model = model
@@ -144,11 +143,6 @@ class ModelEntry(ScheduleEntry):
             # 保存到数据库
             ext_fields = ('enabled',)   # 额外保存的字段
             self.save(ext_fields)
-            # 这里数据库改变数据后，可能会因为没有Ssesion导致进程退出
-            # session = self.Session()
-            # with session_cleanup(session):
-            #     session.add(self.model)
-            #     session.commit()
 
             return schedules.schedstate(False, None)  # Don't recheck
 
@@ -180,9 +174,8 @@ class ModelEntry(ScheduleEntry):
         with session_cleanup(session):
             # Object may not be synchronized, so only
             # change the fields we care about.
-            # 对象可能没有同步，所以只修改我们关心的字段。
             obj = session.query(PeriodicTask).get(self.model.id)
-            # 获取需要保存的字段并更新model
+
             for field in self.save_fields:
                 setattr(obj, field, getattr(self.model, field))
             for field in fields:
@@ -193,7 +186,7 @@ class ModelEntry(ScheduleEntry):
     @classmethod
     def to_model_schedule(cls, session, schedule):
         for schedule_type, model_type, model_field in cls.model_schedules:
-            # 转换为 schedule
+            # change to schedule
             schedule = schedules.maybe_schedule(schedule)
             if isinstance(schedule, schedule_type):
                 # TODO:
@@ -204,7 +197,7 @@ class ModelEntry(ScheduleEntry):
 
     @classmethod
     def from_entry(cls, name, Session, app=None, **entry):
-        """从entry加载数据
+        """
 
         **entry sample:
 
@@ -238,7 +231,7 @@ class ModelEntry(ScheduleEntry):
     def _unpack_fields(cls, session, schedule,
                        args=None, kwargs=None, relative=None, options=None,
                        **entry):
-        """解包成字段
+        """
 
         **entry sample:
 
@@ -249,8 +242,8 @@ class ModelEntry(ScheduleEntry):
         """
         model_schedule, model_field = cls.to_model_schedule(session, schedule)
         entry.update(
-            # {model_field: model_schedule},  # 需要关联的model
-            {model_field + '_id': model_schedule.id},  # 需要关联的model_id
+            # the model_id which to relationship
+            {model_field + '_id': model_schedule.id},
             args=dumps(args or []),
             kwargs=dumps(kwargs or {}),
             **cls._unpack_options(**options or {})  # 解包
@@ -260,7 +253,6 @@ class ModelEntry(ScheduleEntry):
     @classmethod
     def _unpack_options(cls, queue=None, exchange=None, routing_key=None,
                         priority=None, **kwargs):
-        """options解包成dict"""
         return {
             'queue': queue,
             'exchange': exchange,
@@ -348,7 +340,7 @@ class DatabaseScheduler(Scheduler):
     def reserve(self, entry):
         """override
 
-        在父类的 tick() 中会调用
+        It will be called in parent class.
         """
         new_entry = next(entry)
         # Need to store entry by name, because the entry may change
@@ -357,7 +349,6 @@ class DatabaseScheduler(Scheduler):
         return new_entry
 
     def sync(self):
-        """同步"""
         # TODO:
         info('Writing entries...')
         _tried = set()
@@ -366,7 +357,7 @@ class DatabaseScheduler(Scheduler):
             while self._dirty:
                 name = self._dirty.pop()
                 try:
-                    self.schedule[name].save()  # 保存到数据库
+                    self.schedule[name].save()  # save to database
                     _tried.add(name)
                 except (KeyError) as exc:
                     logger.error(exc)
@@ -424,7 +415,7 @@ class DatabaseScheduler(Scheduler):
             initial = update = True
             self._initial_read = False
         elif self.schedule_changed():
-            # 更新了 PeriodicTasks model 的 last_update 字段，则会进行更新
+            # when you updated the `PeriodicTasks` model's `last_update` field
             info('DatabaseScheduler: Schedule changed.')
             update = True
 

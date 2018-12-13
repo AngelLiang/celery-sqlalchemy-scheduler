@@ -51,7 +51,6 @@ class SessionManager(object):
                 return engine
         else:
             return create_engine(dburi, poolclass=NullPool)
-            # return create_engine(dburi)
 
     def create_session(self, dburi, short_lived_sessions=False, **kwargs):
         engine = self.get_engine(dburi, **kwargs)
