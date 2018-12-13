@@ -6,6 +6,7 @@ verify_ssl = true
 [dev-packages]
 autopep8 = "*"
 flake8 = "*"
+twine = "*"
 
 [packages]
 celery = "==4.2.0"
