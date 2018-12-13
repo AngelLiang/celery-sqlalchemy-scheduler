@@ -8,7 +8,19 @@
 - celery >= 4.2.0
 - sqlalchemy
 
+首先必须安装 `celery` 和 `sqlalchemy`, 并且`celery`应该大于等于 4.2.0 版本。
+
+```
+$ pip install celery sqlalchemy
+```
+
 ## 安装
+
+通过 PyPi 安装：
+
+```
+$ pip install celery-sqlalchemy-scheduler
+```
 
 通过 github 仓库进行安装：
 

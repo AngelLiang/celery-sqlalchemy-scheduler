@@ -14,6 +14,12 @@ $ pip install celery sqlalchemy
 
 ### Installing
 
+Install from PyPi:
+
+```
+$ pip install celery-sqlalchemy-scheduler
+```
+
 Install from source by cloning this repository:
 
 ```
