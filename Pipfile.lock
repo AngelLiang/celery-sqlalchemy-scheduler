@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "32164913d55798ddfe8c8381741b50083b090934d84ece426ba803d46ad1d8e1"
+            "sha256": "2359f13ce19251b36a740d66510a201c6957b4e8834d4403ad3882123f202ad9"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -44,13 +44,20 @@
             ],
             "version": "==4.2.2"
         },
-        "python-dotenv": {
+        "mysql-connector": {
             "hashes": [
-                "sha256:4f3582904d08dac5ab4c9aa44cb17ce056c9a35e585cfda6183d80054d247307",
-                "sha256:cb8cd327109898c7725f76c5256a081e8a9efe72ebbf127f8d1221ceb7f38bf2"
+                "sha256:d5b95b8de234873563855e288f0c9ef85b119c0a862287cbcee7d6654cf60467"
             ],
             "index": "pypi",
-            "version": "==0.10.0"
+            "version": "==2.1.6"
+        },
+        "python-dotenv": {
+            "hashes": [
+                "sha256:a84569d0e00d178bc5b957f7ff208bf49287cbf61857c31c258c4a91f571527b",
+                "sha256:c9b1ddd3cdbe75c7d462cb84674d87130f4b948f090f02c7d7144779afb99ae0"
+            ],
+            "index": "pypi",
+            "version": "==0.10.1"
         },
         "pytz": {
             "hashes": [
@@ -156,10 +163,10 @@
         },
         "pygments": {
             "hashes": [
-                "sha256:6301ecb0997a52d2d31385e62d0a4a4cf18d2f2da7054a5ddad5c366cd39cee7",
-                "sha256:82666aac15622bd7bb685a4ee7f6625dd716da3ef7473620c192c0168aae64fc"
+                "sha256:5ffada19f6203563680669ee7f53b64dabbeb100eb51b61996085e99c03b284a",
+                "sha256:e8218dd399a61674745138520d0d4cf2621d7e032439341bc3f647bff125818d"
             ],
-            "version": "==2.3.0"
+            "version": "==2.3.1"
         },
         "readme-renderer": {
             "hashes": [

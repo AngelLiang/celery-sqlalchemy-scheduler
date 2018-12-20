@@ -12,6 +12,7 @@ twine = "*"
 celery = "==4.2.0"
 python-dotenv = "*"
 sqlalchemy = "*"
+mysql-connector = "*"
 
 [requires]
 python_version = "3"
