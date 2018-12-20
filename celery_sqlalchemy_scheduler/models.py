@@ -179,16 +179,19 @@ class PeriodicTaskChanged(ModelBase, ModelMixin):
         sa.DateTime(), nullable=False, default=dt.datetime.now)
 
     @classmethod
-    def changed(cls, instance, **kwargs):
+    def changed(cls, instance, session):
+        """
+        :param instance: PeriodicTask
+        :param session: 
+        """
         if not instance.no_changes:
             cls.update_changed()
 
     @classmethod
-    def update_changed(cls, session, **kwargs):
+    def update_changed(cls, session):
         periodic_tasks = session.query(PeriodicTaskChanged).get(1)
         if not periodic_tasks:
-            periodic_tasks = PeriodicTaskChanged()
-            periodic_tasks.id = 1
+            periodic_tasks = PeriodicTaskChanged(id=1)
         periodic_tasks.last_update = dt.datetime.now()
         session.add(periodic_tasks)
         session.commit()
