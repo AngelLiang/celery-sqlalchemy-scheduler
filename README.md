@@ -4,6 +4,8 @@ A Scheduler Based Sqlalchemy for Celery.
 
 ## Getting Started
 
+[English](/README.md) [中文文档](/README-zh.md)
+
 ### Prerequisites
 
 First you must install `celery` and `sqlalchemy`, and `celery` should be >=4.2.0.
@@ -46,13 +48,36 @@ This is a demo for exmaple, you can check the code in `examples` directory
    $ celery beat -A tasks -S celery_sqlalchemy_scheduler.schedulers:DatabaseScheduler -l info
    ```
 
-# Description
+## Description
 
 After the celery beat is started, by default it create a sqlite database(`schedule.db`) in current folder. You can use `SQLiteStudio.exe` to inspect it.
 
 ![sqlite](screenshot/sqlite.png)
 
 When you want to update scheduler, you can update the data in `schedule.db`. But `celery_sqlalchemy_scheduler` don't update the scheduler immediately. Then you shoule be change the first column's `last_update` field in the `celery_periodic_task_changed` to now datetime. Finally the celery beat will update scheduler at next wake-up time.
+
+### Database Configuration
+
+You can configure sqlalchemy db uri when you configure the celery, example as:
+
+```Python
+from celery import Celery
+
+celery = Celery('tasks')
+
+beat_dburi = 'sqlite:///schedule.db'
+
+celery.conf.update(
+    {'beat_dburi': beat_dburi}
+)
+```
+
+Also, you can use mysql database.
+
+```Python
+# install mysqlconnector at first: `pip install mysql-connector`
+beat_dburi = 'mysql+mysqlconnector://root:root@127.0.0.1/celery-schedule'
+```
 
 ## Acknowledgments
 
