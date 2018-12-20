@@ -30,13 +30,18 @@ beat_schedule = {
     #     'args': (1, 2)
     # },
 }
+
 beat_scheduler = 'celery_sqlalchemy_scheduler.schedulers:DatabaseScheduler'
+
 beat_sync_every = 0
+
 # The maximum number of seconds beat can sleep between checking the schedule.
 # default: 0
 beat_max_loop_interval = 10
+
 # 自定义配置
 beat_dburi = 'sqlite:///schedule.db'
+# beat_dburi = 'mysql+mysqlconnector://root:root@127.0.0.1/celery-schedule'
 
 # 配置时区
 timezone = 'Asia/Shanghai'
