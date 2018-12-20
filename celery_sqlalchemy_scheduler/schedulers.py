@@ -1,7 +1,7 @@
 # coding=utf-8
 
-# import datetime as dt
 import logging
+# import datetime as dt
 
 import sqlalchemy
 
@@ -100,7 +100,6 @@ class ModelEntry(ScheduleEntry):
         self.last_run_at = self.last_run_at.replace(tzinfo=self.app.timezone)
 
     def _disable(self, model):
-        """禁用"""
         model.no_changes = True
         self.model.enabled = self.enabled = model.enabled = False
         if self.session:
@@ -118,7 +117,6 @@ class ModelEntry(ScheduleEntry):
             #     session.commit()
 
     def is_due(self):
-        """是否到期"""
         if not self.model.enabled:
             # 5 second delay for re-enable.
             return schedules.schedstate(False, 5.0)
@@ -140,8 +138,7 @@ class ModelEntry(ScheduleEntry):
             self.model.enabled = False
             self.model.total_run_count = 0  # Reset
             self.model.no_changes = False  # Mark the model entry as changed
-            # 保存到数据库
-            ext_fields = ('enabled',)   # 额外保存的字段
+            ext_fields = ('enabled',)   # the additional fields to save
             self.save(ext_fields)
 
             return schedules.schedstate(False, None)  # Don't recheck
@@ -149,7 +146,6 @@ class ModelEntry(ScheduleEntry):
         return self.schedule.is_due(self.last_run_at)
 
     def _default_now(self):
-        """当前默认时间"""
         now = self.app.now()
         # The PyTZ datetime must be localised for the Django-Celery-Beat
         # scheduler to work. Keep in mind that timezone arithmatic
@@ -167,7 +163,7 @@ class ModelEntry(ScheduleEntry):
 
     def save(self, fields=tuple()):
         """
-        :params fields: tuple, 额外需要保存的字段
+        :params fields: tuple, the additional fields to save
         """
         # TODO:
         session = self.Session()
@@ -246,7 +242,7 @@ class ModelEntry(ScheduleEntry):
             {model_field + '_id': model_schedule.id},
             args=dumps(args or []),
             kwargs=dumps(kwargs or {}),
-            **cls._unpack_options(**options or {})  # 解包
+            **cls._unpack_options(**options or {})
         )
         return entry
 
@@ -305,7 +301,7 @@ class DatabaseScheduler(Scheduler):
         session = self.Session()
         with session_cleanup(session):
             debug('DatabaseScheduler: Fetching database schedule')
-            # 获取所有使能的 PeriodicTask
+            # get all enabled PeriodicTask
             models = session.query(self.Model).filter_by(enabled=True).all()
             s = {}
             for model in models:

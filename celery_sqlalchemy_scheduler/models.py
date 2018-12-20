@@ -3,13 +3,9 @@
 import datetime as dt
 
 import sqlalchemy as sa
-# from sqlalchemy import event
 from sqlalchemy.orm import relationship
-# from sqlalchemy.types import PickleType
 
 from celery import schedules
-# from celery.utils.time import localize
-# from celery import states
 from celery.five import python_2_unicode_compatible
 
 from .tzcrontab import TzAwareCrontab
