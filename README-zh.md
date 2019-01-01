@@ -15,7 +15,8 @@
 首先必须安装 `celery` 和 `sqlalchemy`, 并且`celery`应该大于等于 4.2.0 版本。
 
 ```
-$ pip install celery sqlalchemy
+$ pip install celery
+$ pip install sqlalchemy
 ```
 
 ### 安装

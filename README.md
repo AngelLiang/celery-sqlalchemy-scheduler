@@ -11,7 +11,8 @@ A Scheduler Based Sqlalchemy for Celery.
 First you must install `celery` and `sqlalchemy`, and `celery` should be >=4.2.0.
 
 ```
-$ pip install celery sqlalchemy
+$ pip install celery
+$ pip install sqlalchemy
 ```
 
 ### Installing
