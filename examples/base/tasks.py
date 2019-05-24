@@ -10,21 +10,18 @@ Run Worker::
 
     $ cd examples/base
     $ celery worker -A tasks:celery -l info
-    # OR
-    $ python examples/base/tasks.py worker -l info
 
 Run Beat::
 
     $ cd examples/base
     $ celery beat -A tasks:celery -S tasks:DatabaseScheduler -l info
-    # OR
-    $ python examples/base/tasks.py -S tasks:DatabaseScheduler -l info
 
 """
 import os
 import platform
 from datetime import timedelta
 from celery import Celery
+from celery import schedules
 
 from celery_sqlalchemy_scheduler.schedulers import DatabaseScheduler  # noqa
 
@@ -42,11 +39,11 @@ beat_schedule = {
         'schedule': timedelta(seconds=3),
         'args': ('hello', )
     },
-    # 'add-every-7-seconds': {
-    #     'task': 'examples.tasks.add',
-    #     'schedule': timedelta(seconds=7),
-    #     'args': (1, 2)
-    # },
+    'add-every-minutes': {
+        'task': 'tasks.add',
+        'schedule': schedules.crontab('*', '*', '*'),
+        'args': (1, 2)
+    },
 }
 
 beat_scheduler = 'celery_sqlalchemy_scheduler.schedulers:DatabaseScheduler'
@@ -57,7 +54,7 @@ beat_sync_every = 0
 # default: 0
 beat_max_loop_interval = 10
 
-# 自定义配置
+# 非celery和beat的配置，配置beat_dburi数据库路径
 beat_dburi = 'sqlite:///schedule.db'
 # beat_dburi = 'mysql+mysqlconnector://root:root@127.0.0.1/celery-schedule'
 
