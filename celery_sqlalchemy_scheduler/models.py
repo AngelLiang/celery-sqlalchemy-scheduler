@@ -7,10 +7,13 @@ from sqlalchemy.orm import relationship
 
 from celery import schedules
 from celery.five import python_2_unicode_compatible
+from celery.utils.log import get_logger
 
 from .tzcrontab import TzAwareCrontab
 from .session import ModelBase
 
+
+logger = get_logger('celery_sqlalchemy_scheduler.models')
 
 DAYS = 'days'
 HOURS = 'hours'
@@ -101,7 +104,7 @@ class CrontabSchedule(ModelBase, ModelMixin):
             hour=self.hour, day_of_week=self.day_of_week,
             day_of_month=self.day_of_month,
             month_of_year=self.month_of_year,
-            tz=self.timezone
+            # tz=self.timezone
         )
 
     @classmethod
@@ -168,9 +171,8 @@ class PeriodicTaskChanged(ModelBase, ModelMixin):
     """Helper table for tracking updates to periodic tasks."""
 
     __tablename__ = 'celery_periodic_task_changed'
-    __table_args__ = {'sqlite_autoincrement': True}
 
-    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    id = sa.Column(sa.Integer, primary_key=True)
     last_update = sa.Column(
         sa.DateTime(), nullable=False, default=dt.datetime.now)
 
@@ -219,39 +221,39 @@ class PeriodicTask(ModelBase, ModelMixin):
     def task_name(self, value):
         self.task = value
 
-    interval_id = sa.Column(sa.ForeignKey(IntervalSchedule.id), nullable=True)
+    interval_id = sa.Column(sa.ForeignKey(IntervalSchedule.id))
     interval = relationship('IntervalSchedule')
 
-    crontab_id = sa.Column(sa.ForeignKey(CrontabSchedule.id), nullable=True)
-    crontab = relationship('IntervalSchedule')
+    crontab_id = sa.Column(sa.ForeignKey(CrontabSchedule.id))
+    crontab = relationship('CrontabSchedule')
 
-    solar_id = sa.Column(sa.ForeignKey(SolarSchedule.id), nullable=True)
-    solar = relationship('IntervalSchedule')
+    solar_id = sa.Column(sa.ForeignKey(SolarSchedule.id))
+    solar = relationship('SolarSchedule')
 
     # 参数
     args = sa.Column(sa.Text(), default='[]')
     kwargs = sa.Column(sa.Text(), default='{}')
     # 队列
-    queue = sa.Column(sa.String(255), nullable=True)
+    queue = sa.Column(sa.String(255))
     # 交换器
-    exchange = sa.Column(sa.String(255), nullable=True)
+    exchange = sa.Column(sa.String(255))
     # 路由键
-    routing_key = sa.Column(sa.String(255), nullable=True)
+    routing_key = sa.Column(sa.String(255))
     # 优先级
-    priority = sa.Column(sa.Integer(), nullable=True)
+    priority = sa.Column(sa.Integer())
 
-    expires = sa.Column(sa.DateTime(), nullable=True)
+    expires = sa.Column(sa.DateTime())
 
     one_off = sa.Column(sa.Boolean(), default=False)
 
     # 开始时间
-    start_time = sa.Column(sa.DateTime(), nullable=True)
+    start_time = sa.Column(sa.DateTime())
     # 使能/禁能
     enabled = sa.Column(sa.Boolean(), default=True)
     # 最后运行时间
-    last_run_at = sa.Column(sa.DateTime(), nullable=True)
+    last_run_at = sa.Column(sa.DateTime())
     # 总运行次数
-    total_run_count = sa.Column(sa.Integer(), default=0)
+    total_run_count = sa.Column(sa.Integer(), nullable=False, default=0)
     # 修改时间
     date_changed = sa.Column(
         sa.DateTime(), default=dt.datetime.now, onupdate=dt.datetime.now)
@@ -278,7 +280,7 @@ class PeriodicTask(ModelBase, ModelMixin):
             return self.crontab.schedule
         elif self.solar:
             return self.solar.schedule
-        raise ValueError('schedule is None!')
+        raise ValueError('{} schedule is None!'.format(self.name))
 
 
 # @event.listens_for(PeriodicTask, 'after_update')
