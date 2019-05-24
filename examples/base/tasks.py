@@ -1,18 +1,36 @@
 # coding=utf-8
 """
-Run Worker:
+Ready::
 
+    $ pipenv install
+    $ pipenv shell
+    $ python setup.py install
+
+Run Worker::
+
+    $ cd examples/base
     $ celery worker -A tasks:celery -l info
+    # OR
+    $ python examples/base/tasks.py worker -l info
 
-Run Beat:
+Run Beat::
 
+    $ cd examples/base
     $ celery beat -A tasks:celery -S tasks:DatabaseScheduler -l info
+    # OR
+    $ python examples/base/tasks.py -S tasks:DatabaseScheduler -l info
 
 """
+import os
+import platform
 from datetime import timedelta
 from celery import Celery
 
 from celery_sqlalchemy_scheduler.schedulers import DatabaseScheduler  # noqa
+
+if platform.system() == 'Windows':
+    # Celery在Windows环境下运行需要设置这个变量，否则调用任务会报错
+    os.environ['FORKED_BY_MULTIPROCESSING'] = '1'
 
 backend = 'rpc://'
 broker_url = 'amqp://guest:guest@localhost:5672//'
