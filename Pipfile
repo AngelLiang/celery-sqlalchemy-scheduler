@@ -11,7 +11,7 @@ twine = "*"
 [packages]
 celery = "==4.2.0"
 python-dotenv = "*"
-sqlalchemy = "*"
+sqlalchemy = ">=1.3.0"
 mysql-connector = "*"
 
 [requires]
