@@ -3,20 +3,17 @@
 import datetime as dt
 
 import sqlalchemy as sa
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, foreign, remote
 
 from celery import schedules
 from celery.five import python_2_unicode_compatible
+from celery.utils.log import get_logger
 
 from .tzcrontab import TzAwareCrontab
 from .session import ModelBase
+from .literals import MICROSECONDS, SECONDS, MINUTES, HOURS
 
-
-DAYS = 'days'
-HOURS = 'hours'
-MINUTES = 'minutes'
-SECONDS = 'seconds'
-MICROSECONDS = 'microseconds'
+logger = get_logger('celery_sqlalchemy_scheduler.models')
 
 
 def cronexp(field):
@@ -101,7 +98,7 @@ class CrontabSchedule(ModelBase, ModelMixin):
             hour=self.hour, day_of_week=self.day_of_week,
             day_of_month=self.day_of_month,
             month_of_year=self.month_of_year,
-            tz=self.timezone
+            # tz=self.timezone
         )
 
     @classmethod
@@ -168,17 +165,16 @@ class PeriodicTaskChanged(ModelBase, ModelMixin):
     """Helper table for tracking updates to periodic tasks."""
 
     __tablename__ = 'celery_periodic_task_changed'
-    __table_args__ = {'sqlite_autoincrement': True}
 
-    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    id = sa.Column(sa.Integer, primary_key=True)
     last_update = sa.Column(
-        sa.DateTime(), nullable=False, default=dt.datetime.now)
+        sa.DateTime(timezone=True), nullable=False, default=dt.datetime.now)
 
     @classmethod
     def changed(cls, instance, session):
         """
         :param instance: PeriodicTask
-        :param session: 
+        :param session:
         """
         if not instance.no_changes:
             cls.update_changed()
@@ -206,55 +202,59 @@ class PeriodicTask(ModelBase, ModelMixin):
     __table_args__ = {'sqlite_autoincrement': True}
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    # 名称
+    # name
     name = sa.Column(sa.String(255), unique=True)
-    # 任务名称
+    # task name
     task = sa.Column(sa.String(255))
 
-    @property
-    def task_name(self):
-        return self.task
+    interval_id = sa.Column(sa.Integer)
+    interval = relationship(
+        IntervalSchedule,
+        uselist=False,
+        primaryjoin=foreign(interval_id) == remote(IntervalSchedule.id)
+    )
 
-    @task_name.setter
-    def task_name(self, value):
-        self.task = value
+    crontab_id = sa.Column(sa.Integer)
+    crontab = relationship(
+        CrontabSchedule,
+        uselist=False,
+        primaryjoin=foreign(crontab_id) == remote(CrontabSchedule.id)
+    )
 
-    interval_id = sa.Column(sa.ForeignKey(IntervalSchedule.id), nullable=True)
-    interval = relationship('IntervalSchedule')
-
-    crontab_id = sa.Column(sa.ForeignKey(CrontabSchedule.id), nullable=True)
-    crontab = relationship('IntervalSchedule')
-
-    solar_id = sa.Column(sa.ForeignKey(SolarSchedule.id), nullable=True)
-    solar = relationship('IntervalSchedule')
+    solar_id = sa.Column(sa.Integer)
+    solar = relationship(
+        SolarSchedule,
+        uselist=False,
+        primaryjoin=foreign(solar_id) == remote(SolarSchedule.id)
+    )
 
     # 参数
     args = sa.Column(sa.Text(), default='[]')
     kwargs = sa.Column(sa.Text(), default='{}')
     # 队列
-    queue = sa.Column(sa.String(255), nullable=True)
+    queue = sa.Column(sa.String(255))
     # 交换器
-    exchange = sa.Column(sa.String(255), nullable=True)
+    exchange = sa.Column(sa.String(255))
     # 路由键
-    routing_key = sa.Column(sa.String(255), nullable=True)
+    routing_key = sa.Column(sa.String(255))
     # 优先级
-    priority = sa.Column(sa.Integer(), nullable=True)
+    priority = sa.Column(sa.Integer())
 
-    expires = sa.Column(sa.DateTime(), nullable=True)
+    expires = sa.Column(sa.DateTime(timezone=True))
 
     one_off = sa.Column(sa.Boolean(), default=False)
 
     # 开始时间
-    start_time = sa.Column(sa.DateTime(), nullable=True)
+    start_time = sa.Column(sa.DateTime(timezone=True))
     # 使能/禁能
     enabled = sa.Column(sa.Boolean(), default=True)
     # 最后运行时间
-    last_run_at = sa.Column(sa.DateTime(), nullable=True)
+    last_run_at = sa.Column(sa.DateTime(timezone=True))
     # 总运行次数
-    total_run_count = sa.Column(sa.Integer(), default=0)
+    total_run_count = sa.Column(sa.Integer(), nullable=False, default=0)
     # 修改时间
-    date_changed = sa.Column(
-        sa.DateTime(), default=dt.datetime.now, onupdate=dt.datetime.now)
+    date_changed = sa.Column(sa.DateTime(timezone=True),
+                             default=dt.datetime.now, onupdate=dt.datetime.now)
     # 说明
     description = sa.Column(sa.Text(), default='')
 
@@ -271,6 +271,14 @@ class PeriodicTask(ModelBase, ModelMixin):
         return fmt.format(self)
 
     @property
+    def task_name(self):
+        return self.task
+
+    @task_name.setter
+    def task_name(self, value):
+        self.task = value
+
+    @property
     def schedule(self):
         if self.interval:
             return self.interval.schedule
@@ -278,7 +286,7 @@ class PeriodicTask(ModelBase, ModelMixin):
             return self.crontab.schedule
         elif self.solar:
             return self.solar.schedule
-        raise ValueError('schedule is None!')
+        raise ValueError('{} schedule is None!'.format(self.name))
 
 
 # @event.listens_for(PeriodicTask, 'after_update')

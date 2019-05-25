@@ -5,7 +5,6 @@ import pytz
 from collections import namedtuple
 from datetime import datetime
 
-
 from celery import schedules
 
 
@@ -31,9 +30,10 @@ class TzAwareCrontab(schedules.crontab):
         )
 
     def nowfunc(self):
-        return self.tz.normalize(
-            pytz.utc.localize(datetime.utcnow())
-        )
+        # return self.tz.normalize(
+        #     pytz.utc.localize(datetime.utcnow())
+        # )
+        return datetime.now()
 
     def is_due(self, last_run_at):
         """Calculate when the next run will take place.
@@ -43,7 +43,7 @@ class TzAwareCrontab(schedules.crontab):
 
         """
         # convert last_run_at to the schedule timezone
-        last_run_at = last_run_at.astimezone(self.tz)
+        # last_run_at = last_run_at.astimezone(self.tz)
 
         rem_delta = self.remaining_estimate(last_run_at)
         rem = max(rem_delta.total_seconds(), 0)

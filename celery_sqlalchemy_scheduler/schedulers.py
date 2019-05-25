@@ -1,12 +1,10 @@
 # coding=utf-8
 
 import logging
-# import datetime as dt
-
-import sqlalchemy
-
+import datetime as dt
 from multiprocessing.util import Finalize
 
+import sqlalchemy
 from celery import current_app
 from celery import schedules
 from celery.beat import Scheduler, ScheduleEntry
@@ -23,18 +21,11 @@ from .models import (
     CrontabSchedule, IntervalSchedule,
     SolarSchedule,
 )
+from .literals import DEFAULT_MAX_INTERVAL, DEFAULT_BEAT_DBURI, ADD_ENTRY_ERROR
 
 session_manager = SessionManager()
 # session = session_manager()
 
-# This scheduler must wake up more frequently than the
-# regular of 5 minutes because it needs to take external
-# changes to the schedule into account.
-DEFAULT_MAX_INTERVAL = 5  # seconds
-
-ADD_ENTRY_ERROR = """\
-Cannot add entry %r to database schedule: %r. Contents: %r
-"""
 
 logger = get_logger(__name__)
 debug, info, warning = logger.debug, logger.info, logger.warning
@@ -138,8 +129,8 @@ class ModelEntry(ScheduleEntry):
             self.model.enabled = False
             self.model.total_run_count = 0  # Reset
             self.model.no_changes = False  # Mark the model entry as changed
-            ext_fields = ('enabled',)   # the additional fields to save
-            self.save(ext_fields)
+            save_fields = ('enabled',)   # the additional fields to save
+            self.save(save_fields)
 
             return schedules.schedstate(False, None)  # Don't recheck
 
@@ -154,7 +145,7 @@ class ModelEntry(ScheduleEntry):
         return now.replace(tzinfo=self.app.timezone)
 
     def __next__(self):
-        # should be use self._default_now() ?
+        # should be use `self._default_now()` or `self.app.now()` ?
         self.model.last_run_at = self.app.now()
         self.model.total_run_count += 1
         self.model.no_changes = True
@@ -198,7 +189,7 @@ class ModelEntry(ScheduleEntry):
         **entry sample:
 
             {'task': 'celery.backend_cleanup',
-             'schedule': <crontab: 0 4 * * * (m/h/d/dM/MY)>,
+             'schedule': schedules.crontab('0', '4', '*'),
              'options': {'expires': 43200}}
 
         """
@@ -207,8 +198,7 @@ class ModelEntry(ScheduleEntry):
             periodic_task = session.query(
                 PeriodicTask).filter_by(name=name).first()
             if not periodic_task:
-                periodic_task = PeriodicTask()
-                periodic_task.name = name
+                periodic_task = PeriodicTask(name=name)
             temp = cls._unpack_fields(session, **entry)
             periodic_task.update(**temp)
             session.add(periodic_task)
@@ -279,17 +269,16 @@ class DatabaseScheduler(Scheduler):
         """Initialize the database scheduler."""
         self.app = kwargs['app']
         self.dburi = kwargs.get('dburi') or self.app.conf.get(
-            'beat_dburi') or 'sqlite:///schedule.db'
+            'beat_dburi') or DEFAULT_BEAT_DBURI
         self.engine, self.Session = session_manager.create_session(self.dburi)
         session_manager.prepare_models(self.engine)
 
         self._dirty = set()
         Scheduler.__init__(self, *args, **kwargs)
         self._finalize = Finalize(self, self.sync, exitpriority=5)
-        self.max_interval = (
-            kwargs.get('max_interval') or
-            self.app.conf.beat_max_loop_interval or
-            DEFAULT_MAX_INTERVAL)
+        self.max_interval = (kwargs.get('max_interval') or
+                             self.app.conf.beat_max_loop_interval or
+                             DEFAULT_MAX_INTERVAL)
 
     def setup_schedule(self):
         """override"""
@@ -315,7 +304,6 @@ class DatabaseScheduler(Scheduler):
             return s
 
     def schedule_changed(self):
-        # TODO:
         session = self.Session()
         with session_cleanup(session):
             changes = session.query(self.Changes).get(1)
@@ -354,6 +342,7 @@ class DatabaseScheduler(Scheduler):
                 name = self._dirty.pop()
                 try:
                     self.schedule[name].save()  # save to database
+                    logger.debug('{name} save to database'.format(name=name))
                     _tried.add(name)
                 except (KeyError) as exc:
                     logger.error(exc)
@@ -370,19 +359,18 @@ class DatabaseScheduler(Scheduler):
         s = {}
         for name, entry_fields in items(mapping):
             # {'task': 'celery.backend_cleanup',
-            #  'schedule': <crontab: 0 4 * * * (m/h/d/dM/MY)>,
+            #  'schedule': schedules.crontab('0', '4', '*'),
             #  'options': {'expires': 43200}}
             try:
                 entry = self.Entry.from_entry(
                     name, Session=self.Session, app=self.app,
                     **entry_fields)
                 if entry.model.enabled:
-                    # if entry.enabled:
                     s[name] = entry
             except Exception as exc:
                 logger.error(ADD_ENTRY_ERROR, name, exc, entry_fields)
 
-        # 更新 self.schedule
+        # update self.schedule
         self.schedule.update(s)
 
     def install_default_entries(self, data):
