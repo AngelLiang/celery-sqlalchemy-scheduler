@@ -174,7 +174,7 @@ class PeriodicTaskChanged(ModelBase, ModelMixin):
 
     id = sa.Column(sa.Integer, primary_key=True)
     last_update = sa.Column(
-        sa.DateTime(), nullable=False, default=dt.datetime.now)
+        sa.DateTime(timezone=True), nullable=False, default=dt.datetime.now)
 
     @classmethod
     def changed(cls, instance, session):
@@ -242,21 +242,21 @@ class PeriodicTask(ModelBase, ModelMixin):
     # 优先级
     priority = sa.Column(sa.Integer())
 
-    expires = sa.Column(sa.DateTime())
+    expires = sa.Column(sa.DateTime(timezone=True))
 
     one_off = sa.Column(sa.Boolean(), default=False)
 
     # 开始时间
-    start_time = sa.Column(sa.DateTime())
+    start_time = sa.Column(sa.DateTime(timezone=True))
     # 使能/禁能
     enabled = sa.Column(sa.Boolean(), default=True)
     # 最后运行时间
-    last_run_at = sa.Column(sa.DateTime())
+    last_run_at = sa.Column(sa.DateTime(timezone=True))
     # 总运行次数
     total_run_count = sa.Column(sa.Integer(), nullable=False, default=0)
     # 修改时间
-    date_changed = sa.Column(
-        sa.DateTime(), default=dt.datetime.now, onupdate=dt.datetime.now)
+    date_changed = sa.Column(sa.DateTime(timezone=True),
+                             default=dt.datetime.now, onupdate=dt.datetime.now)
     # 说明
     description = sa.Column(sa.Text(), default='')
 
