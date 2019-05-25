@@ -3,7 +3,7 @@
 import datetime as dt
 
 import sqlalchemy as sa
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, foreign, remote
 
 from celery import schedules
 from celery.five import python_2_unicode_compatible
@@ -11,15 +11,9 @@ from celery.utils.log import get_logger
 
 from .tzcrontab import TzAwareCrontab
 from .session import ModelBase
-
+from .literals import MICROSECONDS, SECONDS, MINUTES, HOURS
 
 logger = get_logger('celery_sqlalchemy_scheduler.models')
-
-DAYS = 'days'
-HOURS = 'hours'
-MINUTES = 'minutes'
-SECONDS = 'seconds'
-MICROSECONDS = 'microseconds'
 
 
 def cronexp(field):
@@ -180,7 +174,7 @@ class PeriodicTaskChanged(ModelBase, ModelMixin):
     def changed(cls, instance, session):
         """
         :param instance: PeriodicTask
-        :param session: 
+        :param session:
         """
         if not instance.no_changes:
             cls.update_changed()
@@ -208,27 +202,31 @@ class PeriodicTask(ModelBase, ModelMixin):
     __table_args__ = {'sqlite_autoincrement': True}
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    # 名称
+    # name
     name = sa.Column(sa.String(255), unique=True)
-    # 任务名称
+    # task name
     task = sa.Column(sa.String(255))
 
-    @property
-    def task_name(self):
-        return self.task
+    interval_id = sa.Column(sa.Integer)
+    interval = relationship(
+        IntervalSchedule,
+        uselist=False,
+        primaryjoin=foreign(interval_id) == remote(IntervalSchedule.id)
+    )
 
-    @task_name.setter
-    def task_name(self, value):
-        self.task = value
+    crontab_id = sa.Column(sa.Integer)
+    crontab = relationship(
+        CrontabSchedule,
+        uselist=False,
+        primaryjoin=foreign(crontab_id) == remote(CrontabSchedule.id)
+    )
 
-    interval_id = sa.Column(sa.ForeignKey(IntervalSchedule.id))
-    interval = relationship('IntervalSchedule')
-
-    crontab_id = sa.Column(sa.ForeignKey(CrontabSchedule.id))
-    crontab = relationship('CrontabSchedule')
-
-    solar_id = sa.Column(sa.ForeignKey(SolarSchedule.id))
-    solar = relationship('SolarSchedule')
+    solar_id = sa.Column(sa.Integer)
+    solar = relationship(
+        SolarSchedule,
+        uselist=False,
+        primaryjoin=foreign(solar_id) == remote(SolarSchedule.id)
+    )
 
     # 参数
     args = sa.Column(sa.Text(), default='[]')
@@ -271,6 +269,14 @@ class PeriodicTask(ModelBase, ModelMixin):
         elif self.solar:
             fmt = '{0.name}: {0.solar}'
         return fmt.format(self)
+
+    @property
+    def task_name(self):
+        return self.task
+
+    @task_name.setter
+    def task_name(self, value):
+        self.task = value
 
     @property
     def schedule(self):

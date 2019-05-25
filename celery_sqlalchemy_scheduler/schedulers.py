@@ -1,12 +1,10 @@
 # coding=utf-8
 
 import logging
-# import datetime as dt
-
-import sqlalchemy
-
+import datetime as dt
 from multiprocessing.util import Finalize
 
+import sqlalchemy
 from celery import current_app
 from celery import schedules
 from celery.beat import Scheduler, ScheduleEntry
@@ -23,17 +21,7 @@ from .models import (
     CrontabSchedule, IntervalSchedule,
     SolarSchedule,
 )
-
-# This scheduler must wake up more frequently than the
-# regular of 5 minutes because it needs to take external
-# changes to the schedule into account.
-DEFAULT_MAX_INTERVAL = 5  # seconds
-
-DEFAULT_BEAT_DBURI = 'sqlite:///schedule.db'
-
-ADD_ENTRY_ERROR = """\
-Cannot add entry %r to database schedule: %r. Contents: %r
-"""
+from .literals import DEFAULT_MAX_INTERVAL, DEFAULT_BEAT_DBURI, ADD_ENTRY_ERROR
 
 session_manager = SessionManager()
 # session = session_manager()

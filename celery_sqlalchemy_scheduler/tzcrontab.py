@@ -5,7 +5,6 @@ import pytz
 from collections import namedtuple
 from datetime import datetime
 
-
 from celery import schedules
 
 
