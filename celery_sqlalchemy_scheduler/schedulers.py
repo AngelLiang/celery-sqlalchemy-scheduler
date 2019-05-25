@@ -24,17 +24,20 @@ from .models import (
     SolarSchedule,
 )
 
-session_manager = SessionManager()
-# session = session_manager()
-
 # This scheduler must wake up more frequently than the
 # regular of 5 minutes because it needs to take external
 # changes to the schedule into account.
 DEFAULT_MAX_INTERVAL = 5  # seconds
 
+DEFAULT_BEAT_DBURI = 'sqlite:///schedule.db'
+
 ADD_ENTRY_ERROR = """\
 Cannot add entry %r to database schedule: %r. Contents: %r
 """
+
+session_manager = SessionManager()
+# session = session_manager()
+
 
 logger = get_logger(__name__)
 debug, info, warning = logger.debug, logger.info, logger.warning
@@ -278,7 +281,7 @@ class DatabaseScheduler(Scheduler):
         """Initialize the database scheduler."""
         self.app = kwargs['app']
         self.dburi = kwargs.get('dburi') or self.app.conf.get(
-            'beat_dburi') or 'sqlite:///schedule.db'
+            'beat_dburi') or DEFAULT_BEAT_DBURI
         self.engine, self.Session = session_manager.create_session(self.dburi)
         session_manager.prepare_models(self.engine)
 
