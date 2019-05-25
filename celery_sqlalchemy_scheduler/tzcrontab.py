@@ -54,10 +54,9 @@ class TzAwareCrontab(schedules.crontab):
 
     # Needed to support pickling
     def __repr__(self):
-        return """<crontab: {0._orig_minute} {0._orig_hour}
-         {0._orig_day_of_week} {0._orig_day_of_month}
-          {0._orig_month_of_year} (m/h/d/dM/MY), {0.tz}>
-        """.format(self)
+        return """<crontab: {0._orig_minute} {0._orig_hour} \
+{0._orig_day_of_week} {0._orig_day_of_month} \
+{0._orig_month_of_year} (m/h/d/dM/MY), {0.tz}>""".format(self)
 
     def __reduce__(self):
         return (self.__class__, (self._orig_minute,
