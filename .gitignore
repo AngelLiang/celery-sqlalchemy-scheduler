@@ -114,3 +114,6 @@ dmypy.json
 .vscode
 *.db
 *.pid
+*.bak
+*.dat
+*.dir
