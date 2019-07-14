@@ -30,10 +30,9 @@ class TzAwareCrontab(schedules.crontab):
         )
 
     def nowfunc(self):
-        # return self.tz.normalize(
-        #     pytz.utc.localize(datetime.utcnow())
-        # )
-        return datetime.now()
+        return self.tz.normalize(
+            pytz.utc.localize(datetime.utcnow())
+        )
 
     def is_due(self, last_run_at):
         """Calculate when the next run will take place.

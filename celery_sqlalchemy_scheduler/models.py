@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import datetime as dt
+import pytz
 
 import sqlalchemy as sa
 from sqlalchemy.orm import relationship, foreign, remote
@@ -98,7 +99,7 @@ class CrontabSchedule(ModelBase, ModelMixin):
             hour=self.hour, day_of_week=self.day_of_week,
             day_of_month=self.day_of_month,
             month_of_year=self.month_of_year,
-            # tz=self.timezone
+            tz=pytz.timezone(self.timezone)
         )
 
     @classmethod
