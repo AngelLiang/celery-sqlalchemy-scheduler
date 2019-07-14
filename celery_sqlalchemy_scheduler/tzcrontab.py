@@ -3,7 +3,7 @@
 
 import pytz
 from collections import namedtuple
-from datetime import datetime
+import datetime as dt
 
 from celery import schedules
 
@@ -25,13 +25,14 @@ class TzAwareCrontab(schedules.crontab):
 
         super(TzAwareCrontab, self).__init__(
             minute=minute, hour=hour, day_of_week=day_of_week,
-            day_of_month=day_of_month,
-            month_of_year=month_of_year, nowfun=nowfun, app=app
+            day_of_month=day_of_month, month_of_year=month_of_year,
+            # tz=tz,
+            nowfun=nowfun, app=app
         )
 
     def nowfunc(self):
         return self.tz.normalize(
-            pytz.utc.localize(datetime.utcnow())
+            pytz.utc.localize(dt.datetime.utcnow())
         )
 
     def is_due(self, last_run_at):

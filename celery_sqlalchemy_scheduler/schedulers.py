@@ -27,8 +27,7 @@ session_manager = SessionManager()
 # session = session_manager()
 
 
-logger = get_logger(__name__)
-debug, info, warning = logger.debug, logger.info, logger.warning
+logger = get_logger('celery_sqlalchemy_scheduler.schedulers')
 
 
 class ModelEntry(ScheduleEntry):
@@ -54,8 +53,9 @@ class ModelEntry(ScheduleEntry):
 
         try:
             self.schedule = model.schedule
-            debug('schedule: {}'.format(self.schedule))
-        except Exception:
+            logger.debug('schedule: {}'.format(self.schedule))
+        except Exception as e:
+            logger.error(e)
             logger.error(
                 'Disabling schedule %s that was removed from database',
                 self.name,
@@ -289,7 +289,7 @@ class DatabaseScheduler(Scheduler):
         # TODO:
         session = self.Session()
         with session_cleanup(session):
-            debug('DatabaseScheduler: Fetching database schedule')
+            logger.debug('DatabaseScheduler: Fetching database schedule')
             # get all enabled PeriodicTask
             models = session.query(self.Model).filter_by(enabled=True).all()
             s = {}
@@ -333,8 +333,8 @@ class DatabaseScheduler(Scheduler):
         return new_entry
 
     def sync(self):
-        # TODO:
-        info('Writing entries...')
+        """override"""
+        logger.info('Writing entries...')
         _tried = set()
         _failed = set()
         try:
@@ -342,7 +342,8 @@ class DatabaseScheduler(Scheduler):
                 name = self._dirty.pop()
                 try:
                     self.schedule[name].save()  # save to database
-                    logger.debug('{name} save to database'.format(name=name))
+                    logger.debug(
+                        '{name} save to database'.format(name=name))
                     _tried.add(name)
                 except (KeyError) as exc:
                     logger.error(exc)
@@ -395,12 +396,12 @@ class DatabaseScheduler(Scheduler):
     def schedule(self):
         initial = update = False
         if self._initial_read:
-            debug('DatabaseScheduler: initial read')
+            logger.debug('DatabaseScheduler: initial read')
             initial = update = True
             self._initial_read = False
         elif self.schedule_changed():
             # when you updated the `PeriodicTasks` model's `last_update` field
-            info('DatabaseScheduler: Schedule changed.')
+            logger.info('DatabaseScheduler: Schedule changed.')
             update = True
 
         if update:
@@ -411,10 +412,10 @@ class DatabaseScheduler(Scheduler):
                 self._heap = []
                 self._heap_invalidated = True
             if logger.isEnabledFor(logging.DEBUG):
-                debug('Current schedule:\n%s', '\n'.join(
+                logger.debug('Current schedule:\n%s', '\n'.join(
                     repr(entry) for entry in values(self._schedule)),
                 )
-        # debug(self._schedule)
+        # logger.debug(self._schedule)
         return self._schedule
 
     @property
