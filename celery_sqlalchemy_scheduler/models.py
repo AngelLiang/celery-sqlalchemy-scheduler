@@ -4,7 +4,9 @@ import datetime as dt
 import pytz
 
 import sqlalchemy as sa
+from sqlalchemy.event import listen
 from sqlalchemy.orm import relationship, foreign, remote
+from sqlalchemy.sql import select, insert, update
 
 from celery import schedules
 from celery.five import python_2_unicode_compatible
@@ -172,22 +174,26 @@ class PeriodicTaskChanged(ModelBase, ModelMixin):
         sa.DateTime(timezone=True), nullable=False, default=dt.datetime.now)
 
     @classmethod
-    def changed(cls, instance, session):
+    def changed(cls, mapper, connection, target):
         """
-        :param instance: PeriodicTask
-        :param session:
+        :param mapper: the Mapper which is the target of this event
+        :param connection: the Connection being used
+        :param target: the mapped instance being persisted
         """
-        if not instance.no_changes:
-            cls.update_changed()
+        if not target.no_changes:
+            cls.update_changed(mapper, connection, target)
 
     @classmethod
-    def update_changed(cls, session):
-        periodic_tasks = session.query(PeriodicTaskChanged).get(1)
-        if not periodic_tasks:
-            periodic_tasks = PeriodicTaskChanged(id=1)
-        periodic_tasks.last_update = dt.datetime.now()
-        session.add(periodic_tasks)
-        session.commit()
+    def update_changed(cls, mapper, connection, target):
+        s = connection.execute(select([PeriodicTaskChanged]).
+                               where(PeriodicTaskChanged.id == 1).limit(1))
+        if not s:
+            s = connection.execute(insert(PeriodicTaskChanged),
+                                   last_update=dt.datetime.now())
+        else:
+            s = connection.execute(update(PeriodicTaskChanged).
+                                   where(PeriodicTaskChanged.id == 1).
+                                   values(last_update=dt.datetime.now()))
 
     @classmethod
     def last_change(cls, session):
@@ -290,6 +296,15 @@ class PeriodicTask(ModelBase, ModelMixin):
         raise ValueError('{} schedule is None!'.format(self.name))
 
 
-# @event.listens_for(PeriodicTask, 'after_update')
-# def PeriodicTask_receive_after_update(mapper, connection, target):
-#     print('{} {} {}'.format(mapper, connection, target))
+listen(PeriodicTask, 'after_insert', PeriodicTaskChanged.update_changed)
+listen(PeriodicTask, 'after_delete', PeriodicTaskChanged.update_changed)
+listen(PeriodicTask, 'after_update', PeriodicTaskChanged.changed)
+listen(IntervalSchedule, 'after_insert', PeriodicTaskChanged.update_changed)
+listen(IntervalSchedule, 'after_delete', PeriodicTaskChanged.update_changed)
+listen(IntervalSchedule, 'after_update', PeriodicTaskChanged.update_changed)
+listen(CrontabSchedule, 'after_insert', PeriodicTaskChanged.update_changed)
+listen(CrontabSchedule, 'after_delete', PeriodicTaskChanged.update_changed)
+listen(CrontabSchedule, 'after_update', PeriodicTaskChanged.update_changed)
+listen(SolarSchedule, 'after_insert', PeriodicTaskChanged.update_changed)
+listen(SolarSchedule, 'after_delete', PeriodicTaskChanged.update_changed)
+listen(SolarSchedule, 'after_update', PeriodicTaskChanged.update_changed)
