@@ -4,9 +4,11 @@ import datetime as dt
 import pytz
 
 import sqlalchemy as sa
-from sqlalchemy import event
+from sqlalchemy.event import listen
 from sqlalchemy.orm import relationship, foreign, remote
-from celery import current_app, schedules
+from sqlalchemy.sql import select, insert, update
+
+from celery import schedules
 from celery.utils.log import get_logger
 from dateutil import tz
 
@@ -69,32 +71,6 @@ class IntervalSchedule(ModelBase, ModelMixin):
 
     def period_singular(self):
         return self.period[:-1]
-
-    @classmethod
-    def __declare_last__(cls):
-        @event.listens_for(cls, 'after_insert')
-        def receive_after_insert_for_cache_query(mapper, conn, target):
-            """注册Mapper事件，监听insert之后
-
-            :param target: 模型
-            """
-            logger.debug('after_insert {}'.format(target))
-
-        @event.listens_for(cls, 'after_update')
-        def receive_after_update_for_cache_query(mapper, conn, target):
-            """注册Mapper事件，监听update之后
-
-            :param target: 模型
-            """
-            logger.debug('after_update {}'.format(target))
-
-        @event.listens_for(cls, 'after_delete')
-        def receive_after_delete_for_cache_query(mapper, conn, target):
-            """注册Mapper事件，监听delete之后
-
-            :param target: 模型
-            """
-            logger.debug('after_delete {}'.format(target))
 
 
 class CrontabSchedule(ModelBase, ModelMixin):
@@ -198,22 +174,26 @@ class PeriodicTaskChanged(ModelBase, ModelMixin):
         sa.DateTime(timezone=True), nullable=False, default=dt.datetime.now)
 
     @classmethod
-    def changed(cls, instance, session):
+    def changed(cls, mapper, connection, target):
         """
-        :param instance: PeriodicTask
-        :param session:
+        :param mapper: the Mapper which is the target of this event
+        :param connection: the Connection being used
+        :param target: the mapped instance being persisted
         """
-        if not instance.no_changes:
-            cls.update_changed()
+        if not target.no_changes:
+            cls.update_changed(mapper, connection, target)
 
     @classmethod
-    def update_changed(cls, session):
-        periodic_tasks = session.query(PeriodicTaskChanged).get(1)
-        if not periodic_tasks:
-            periodic_tasks = PeriodicTaskChanged(id=1)
-        periodic_tasks.last_update = dt.datetime.now()
-        session.add(periodic_tasks)
-        session.commit()
+    def update_changed(cls, mapper, connection, target):
+        s = connection.execute(select([PeriodicTaskChanged]).
+                               where(PeriodicTaskChanged.id == 1).limit(1))
+        if not s:
+            s = connection.execute(insert(PeriodicTaskChanged),
+                                   last_update=dt.datetime.now())
+        else:
+            s = connection.execute(update(PeriodicTaskChanged).
+                                   where(PeriodicTaskChanged.id == 1).
+                                   values(last_update=dt.datetime.now()))
 
     @classmethod
     def last_change(cls, session):
@@ -314,28 +294,16 @@ class PeriodicTask(ModelBase, ModelMixin):
             return self.solar.schedule
         raise ValueError('{} schedule is None!'.format(self.name))
 
-    @classmethod
-    def __declare_last__(cls):
-        @event.listens_for(cls, 'after_insert')
-        def receive_after_insert_for_cache_query(mapper, conn, target):
-            """注册Mapper事件，监听insert之后
 
-            :param target: 模型
-            """
-            logger.debug('after_insert {}'.format(target))
-
-        @event.listens_for(cls, 'after_update')
-        def receive_after_update_for_cache_query(mapper, conn, target):
-            """注册Mapper事件，监听update之后
-
-            :param target: 模型
-            """
-            logger.debug('after_update {}'.format(target))
-
-        @event.listens_for(cls, 'after_delete')
-        def receive_after_delete_for_cache_query(mapper, conn, target):
-            """注册Mapper事件，监听delete之后
-
-            :param target: 模型
-            """
-            logger.debug('after_delete {}'.format(target))
+listen(PeriodicTask, 'after_insert', PeriodicTaskChanged.update_changed)
+listen(PeriodicTask, 'after_delete', PeriodicTaskChanged.update_changed)
+listen(PeriodicTask, 'after_update', PeriodicTaskChanged.changed)
+listen(IntervalSchedule, 'after_insert', PeriodicTaskChanged.update_changed)
+listen(IntervalSchedule, 'after_delete', PeriodicTaskChanged.update_changed)
+listen(IntervalSchedule, 'after_update', PeriodicTaskChanged.update_changed)
+listen(CrontabSchedule, 'after_insert', PeriodicTaskChanged.update_changed)
+listen(CrontabSchedule, 'after_delete', PeriodicTaskChanged.update_changed)
+listen(CrontabSchedule, 'after_update', PeriodicTaskChanged.update_changed)
+listen(SolarSchedule, 'after_insert', PeriodicTaskChanged.update_changed)
+listen(SolarSchedule, 'after_delete', PeriodicTaskChanged.update_changed)
+listen(SolarSchedule, 'after_update', PeriodicTaskChanged.update_changed)
