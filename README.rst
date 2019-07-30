@@ -53,14 +53,14 @@ This is a demo for exmaple, you can check the code in ``examples`` directory
 
     .. code:: PowerShell
 
-            $ celery worker -A tasks -l info
+        $ celery worker -A tasks -l info
    
 
 2.  start the celery beat with ``DatabaseScheduler`` as scheduler
 
     .. code:: PowerShell
 
-            $ celery beat -A tasks -S celery_sqlalchemy_scheduler.schedulers:DatabaseScheduler -l info
+        $ celery beat -A tasks -S celery_sqlalchemy_scheduler.schedulers:DatabaseScheduler -l info
 
 
 
@@ -125,8 +125,7 @@ create the interval object:
     >>> from celery_sqlalchemy_scheduler.session import SessionManager
     >>> from celeryconfig import beat_dburi
     >>> session_manager = SessionManager()
-    >>> engine, Session = SessionManager.create_session(beat_dburi)
-    >>> session = Session()
+    >>> session = session_manager.session_factory(dburi=beat_dburi)
 
     # executes every 10 seconds.
     >>> schedule = session.query(IntervalSchedule).filter_by(every=10, period=IntervalSchedule.SECONDS).first()
@@ -182,9 +181,7 @@ is required:
     ...     name='Importing contacts',          # simply describes this periodic task.
     ...     task='proj.tasks.import_contacts',  # name of task.
     ...     args=json.dumps(['arg1', 'arg2']),
-    ...     kwargs=json.dumps({
-    ...        'be_careful': True,
-    ...     }),
+    ...     kwargs=json.dumps({'be_careful': True}),
     ...     expires=datetime.utcnow() + timedelta(seconds=30)
     ... )
     ... session.add(periodic_task)
@@ -255,14 +252,14 @@ Both the worker and beat services need to be running at the same time.
 
     .. code:: PowerShell
 
-            $ celery -A [project-name] worker --loglevel=info
+        $ celery -A [project-name] worker --loglevel=info
 
 2.  As a separate process, start the beat service (specify the 
     scheduler):
 
     .. code:: PowerShell
 
-            $ celery -A [project-name] beat -l info --scheduler celery_sqlalchemy_scheduler.schedulers:DatabaseScheduler
+        $ celery -A [project-name] beat -l info --scheduler celery_sqlalchemy_scheduler.schedulers:DatabaseScheduler
 
 
 
