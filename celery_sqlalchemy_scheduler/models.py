@@ -10,11 +10,10 @@ from sqlalchemy.sql import select, insert, update
 
 from celery import schedules
 from celery.utils.log import get_logger
-from dateutil import tz
 
 from .tzcrontab import TzAwareCrontab
 from .session import ModelBase
-from .literals import MICROSECONDS, SECONDS, MINUTES, HOURS
+# from .literals import MICROSECONDS, SECONDS, MINUTES, HOURS
 
 logger = get_logger('celery_sqlalchemy_scheduler.models')
 
@@ -39,6 +38,12 @@ class ModelMixin(object):
 class IntervalSchedule(ModelBase, ModelMixin):
     __tablename__ = 'celery_interval_schedule'
     __table_args__ = {'sqlite_autoincrement': True}
+
+    DAYS = 'days'
+    HOURS = 'hours'
+    MINUTES = 'minutes'
+    SECONDS = 'seconds'
+    MICROSECONDS = 'microseconds'
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
 
@@ -209,7 +214,7 @@ class PeriodicTask(ModelBase, ModelMixin):
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     # name
-    name = sa.Column(sa.String(255), unique=True)
+    name = sa.Column(sa.String(255))
     # task name
     task = sa.Column(sa.String(255))
 
