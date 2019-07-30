@@ -15,7 +15,7 @@ except ImportError:
 
 basedir = path.abspath(path.dirname(__file__))
 # Get the long description from the README file
-with open(path.join(basedir, 'README.md'), encoding='utf-8') as f:
+with open(path.join(basedir, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
@@ -24,7 +24,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version="0.1.2",
+    version="0.2.1",
     # The project's main homepage.
     url="https://github.com/AngelLiang/celery-sqlalchemy-scheduler",
     # Choose your license
@@ -33,7 +33,7 @@ setup(
 
     description="A Scheduler Based SQLalchemy For Celery",
     long_description=long_description,
-    long_description_content_type='text/markdown',  # 长描述内容类型
+    # long_description_content_type='text/markdown',  # 长描述内容类型
 
     platforms='any',
     # Author details
