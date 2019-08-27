@@ -99,7 +99,7 @@ create the interval object:
 >>> from celery_sqlalchemy_scheduler.session import SessionManager
 >>> from celeryconfig import beat_dburi
 >>> session_manager = SessionManager()
->>> engine, Session = SessionManager.create_session(beat_dburi)
+>>> engine, Session = session_manager.create_session(beat_dburi)
 >>> session = Session()
 
 # executes every 10 seconds.
