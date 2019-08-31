@@ -205,7 +205,7 @@ A crontab schedule has the fields: ``minute`` , ``hour`` , ``day_of_week`` ,
     ...     day_of_week='*',
     ...     day_of_month='*',
     ...     month_of_year='*',
-    ...     timezone=pytz.timezone('Canada/Pacific')
+    ...     timezone=pytz.timezone('Asia/Shanghai')
     ... )
 
 The crontab schedule is linked to a specific timezone using the
@@ -222,8 +222,8 @@ but instead of ``interval=schedule`` , specify ``crontab=schedule``
     ...     name='Importing contacts',
     ...     task='proj.tasks.import_contacts',
     ... )
-    ... session.add(periodic_task)
-    ... session.commit()
+    >>> session.add(periodic_task)
+    >>> session.commit()
 
 
 
@@ -235,7 +235,8 @@ You can use the `enabled` flag to temporarily disable a periodic task:
 .. code:: Python
 
     >>> periodic_task.enabled = False
-    >>> periodic_task.save()
+    >>> session.add(periodic_task)
+    >>> session.commit()
 
 
 Example running periodic tasks

@@ -20,6 +20,7 @@ Run Beat::
 import os
 import time
 import platform
+import datetime as dt
 from datetime import timedelta
 
 from celery import Celery
@@ -50,7 +51,12 @@ beat_schedule = {
     'echo-every-3-seconds': {
         'task': 'tasks.echo',
         'schedule': timedelta(seconds=3),
-        'args': ('hello', )
+        'args': ('hello', ),
+        'options': {
+            'expires': dt.datetime.utcnow() + timedelta(seconds=10)  # right
+            # 'expires': dt.datetime.now() + timedelta(seconds=30)  # error
+            # 'expires': 10  # right
+        }
     },
     'add-every-minutes': {
         'task': 'tasks.add',
