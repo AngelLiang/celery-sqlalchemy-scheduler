@@ -9,6 +9,7 @@ Getting Started
 \ `English <./README.rst>`_ \
 \ `中文文档 <./README-zh.md>`_ \
 
+
 Prerequisites
 ++++++++++++++
 
@@ -49,14 +50,14 @@ After you have installed ``celery_sqlalchemy_scheduler`` , you can easily start 
 
 This is a demo for exmaple, you can check the code in ``examples`` directory
 
-1.  start celery worker
+1. start celery worker
 
     .. code:: PowerShell
 
         $ celery worker -A tasks -l info
    
 
-2.  start the celery beat with ``DatabaseScheduler`` as scheduler
+2. start the celery beat with ``DatabaseScheduler`` as scheduler
 
     .. code:: PowerShell
 
@@ -184,8 +185,8 @@ is required:
     ...     kwargs=json.dumps({'be_careful': True}),
     ...     expires=datetime.utcnow() + timedelta(seconds=30)
     ... )
-    ... session.add(periodic_task)
-    ... session.commit()
+    >>> session.add(periodic_task)
+    >>> session.commit()
 
 
 Example creating crontab-based periodic task
