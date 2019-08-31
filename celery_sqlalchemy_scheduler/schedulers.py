@@ -92,14 +92,19 @@ class ModelEntry(ScheduleEntry):
             self.options[option] = value
 
         self.total_run_count = model.total_run_count
-
-        self.enabled = self.model.enabled
+        self.enabled = model.enabled
 
         if not model.last_run_at:
             model.last_run_at = self._default_now()
         self.last_run_at = model.last_run_at
+
         # 因为从数据库读取的 last_run_at 可能没有时区信息，所以这里必须加上时区信息
         self.last_run_at = self.last_run_at.replace(tzinfo=self.app.timezone)
+
+        # self.options['expires'] 同理
+        # if 'expires' in self.options:
+        #     expires = self.options['expires']
+        #     self.options['expires'] = expires.replace(tzinfo=self.app.timezone)
 
     def _disable(self, model):
         model.no_changes = True
@@ -137,7 +142,7 @@ class ModelEntry(ScheduleEntry):
         # ONE OFF TASK: Disable one off tasks after they've ran once
         if self.model.one_off and self.model.enabled \
                 and self.model.total_run_count > 0:
-            self.model.enabled = False
+            self.model.enabled = False  # disable
             self.model.total_run_count = 0  # Reset
             self.model.no_changes = False  # Mark the model entry as changed
             save_fields = ('enabled',)   # the additional fields to save
@@ -249,14 +254,23 @@ class ModelEntry(ScheduleEntry):
 
     @classmethod
     def _unpack_options(cls, queue=None, exchange=None, routing_key=None,
-                        priority=None, **kwargs):
-        return {
+                        priority=None, one_off=None, expires=None, **kwargs):
+        data = {
             'queue': queue,
             'exchange': exchange,
             'routing_key': routing_key,
             'priority': priority,
-            # 'one_off': kwargs.get('one_off') or False
+            'one_off': one_off,
         }
+        if expires:
+            if isinstance(expires, int):
+                expires = dt.datetime.utcnow() + dt.timedelta(seconds=expires)
+            elif isinstance(expires, dt.datetime):
+                pass
+            else:
+                raise ValueError('expires value error')
+            data['expires'] = expires
+        return data
 
     def __repr__(self):
         return '<ModelEntry: {0} {1}(*{2}, **{3}) {4}>'.format(
@@ -293,6 +307,7 @@ class DatabaseScheduler(Scheduler):
 
     def setup_schedule(self):
         """override"""
+        logger.info('setup_schedule')
         self.install_default_entries(self.schedule)
         self.update_from_dict(self.app.conf.beat_schedule)
 

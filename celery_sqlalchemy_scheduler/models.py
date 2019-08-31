@@ -190,6 +190,11 @@ class PeriodicTaskChanged(ModelBase, ModelMixin):
 
     @classmethod
     def update_changed(cls, mapper, connection, target):
+        """
+        :param mapper: the Mapper which is the target of this event
+        :param connection: the Connection being used
+        :param target: the mapped instance being persisted
+        """
         s = connection.execute(select([PeriodicTaskChanged]).
                                where(PeriodicTaskChanged.id == 1).limit(1))
         if not s:
@@ -253,8 +258,8 @@ class PeriodicTask(ModelBase, ModelMixin):
 
     expires = sa.Column(sa.DateTime(timezone=True))
 
+    # 只执行一次
     one_off = sa.Column(sa.Boolean(), default=False)
-
     # 开始时间
     start_time = sa.Column(sa.DateTime(timezone=True))
     # 使能/禁能
