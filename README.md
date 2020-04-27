@@ -171,14 +171,13 @@ A crontab schedule has the fields: `minute`, `hour`, `day_of_week`,
 `30 * * * *` (execute every 30 minutes) crontab entry you specify:
 
     >>> from celery_sqlalchemy_scheduler.models import PeriodicTask, CrontabSchedule
-    >>> import pytz
     >>> schedule = CrontabSchedule(
     ...     minute='30',
     ...     hour='*',
     ...     day_of_week='*',
     ...     day_of_month='*',
     ...     month_of_year='*',
-    ...     timezone=pytz.timezone('Canada/Pacific')
+    ...     timezone='UTC',
     ... )
 
 The crontab schedule is linked to a specific timezone using the
