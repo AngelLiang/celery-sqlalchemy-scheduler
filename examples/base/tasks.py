@@ -4,18 +4,62 @@ Ready::
 
     $ pipenv install
     $ pipenv shell
-    $ python setup.py install
 
 Run Worker::
 
+    # console 1 , in pipenv shell
     $ cd examples/base
     $ celery worker -A tasks:celery -l info
 
 Run Beat::
 
+    # console 2, in pipenv shell
     $ cd examples/base
     $ celery beat -A tasks:celery -S tasks:DatabaseScheduler -l info
 
+Console 3::
+
+    # console 3, in pipenv shell
+    $ python -m doctest tasks.py
+
+
+>>> import json
+>>> from celery_sqlalchemy_scheduler.models import PeriodicTask, IntervalSchedule
+>>> from celery_sqlalchemy_scheduler.session import SessionManager
+
+>>> beat_dburi = 'sqlite:///schedule.db'
+>>> session_manager = SessionManager()
+>>> engine, Session = session_manager.create_session(beat_dburi)
+>>> session = Session()
+
+# Disable 'echo-every-3-seconds' task
+>>> task = session.query(PeriodicTask).filter_by(name='echo-every-3-seconds').first()
+>>> task.enabled = False
+>>> session.add(task)
+>>> session.commit()
+
+
+>>> schedule = session.query(IntervalSchedule).filter_by(every=10, period=IntervalSchedule.SECONDS).first()
+>>> if not schedule:
+...     schedule = IntervalSchedule(every=10, period=IntervalSchedule.SECONDS)
+...     session.add(schedule)
+...     session.commit()
+
+# Add 'add-every-10s' task
+>>> task = PeriodicTask(
+...     interval=schedule,
+...     name='add-every-10s',
+...     task='tasks.add',  # name of task.
+...     args=json.dumps([1, 5])
+... )
+>>> session.add(task)
+>>> session.commit()
+>>> print('Add ' + task.name)
+Add add-every-10s
+
+>>> task.args=json.dumps([10, 2])
+>>> session.add(task)
+>>> session.commit()
 """
 import os
 import time
@@ -123,3 +167,5 @@ def echo(data):
 
 if __name__ == "__main__":
     celery.start()
+    # import doctest
+    # doctest.testmod()
