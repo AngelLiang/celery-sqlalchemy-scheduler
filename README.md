@@ -146,7 +146,7 @@ send it to[\*], and set an expiry time.
 Here\'s an example specifying the arguments, note how JSON serialization
 is required:
 
-```python
+
     >>> import json
     >>> from datetime import datetime, timedelta
 
@@ -162,7 +162,7 @@ is required:
     ... )
     ... session.add(periodic_task)
     ... session.commit()
-```
+
 
 ### Example creating crontab-based periodic task
 
@@ -200,7 +200,8 @@ but instead of `interval=schedule`, specify `crontab=schedule`:
 You can use the `enabled` flag to temporarily disable a periodic task:
 
     >>> periodic_task.enabled = False
-    >>> periodic_task.save()
+    >>> session.add(periodic_task)
+    >>> session.commit()
 
 ### Example running periodic tasks
 
