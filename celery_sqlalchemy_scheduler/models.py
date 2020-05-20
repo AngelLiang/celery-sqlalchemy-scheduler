@@ -4,6 +4,7 @@ import datetime as dt
 import pytz
 
 import sqlalchemy as sa
+from sqlalchemy import func
 from sqlalchemy.event import listen
 from sqlalchemy.orm import relationship, foreign, remote
 from sqlalchemy.sql import select, insert, update
@@ -270,7 +271,7 @@ class PeriodicTask(ModelBase, ModelMixin):
     total_run_count = sa.Column(sa.Integer(), nullable=False, default=0)
     # 修改时间
     date_changed = sa.Column(sa.DateTime(timezone=True),
-                             default=dt.datetime.now, onupdate=dt.datetime.now)
+                             default=func.now(), onupdate=func.now())
     # 说明
     description = sa.Column(sa.Text(), default='')
 
