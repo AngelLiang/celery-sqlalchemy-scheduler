@@ -2,6 +2,8 @@
 
 A Scheduler Based Sqlalchemy for Celery.
 
+> NOTE: At first I developed this project for flask with celery to change scheduler from database, like [django-celery-beat](https://github.com/celery/django-celery-beat) for django. And now I maybe haven't time to develop for new feature. No new feature develop plan for it. Just fix bugs. If someone found some bugs, welcome to issue or PR. Thank you for your attention.
+
 ## Getting Started
 
 [English](/README.md) [中文文档](/README-zh.md)
@@ -87,7 +89,13 @@ beat_dburi = 'mysql+mysqlconnector://root:root@127.0.0.1:3306/celery-schedule'
 beat_dburi = 'postgresql+psycopg2://postgres:postgres@127.0.0.1:5432/celery-schedule'
 ```
 
-## Example Code
+## Example Code 1
+
+View `examples/base/tasks.py` for details.
+
+How to quickstart: https://github.com/AngelLiang/celery-sqlalchemy-scheduler/issues/15#issuecomment-625624088
+
+## Example Code 2
 
 ### Example creating interval-based periodic task
 
