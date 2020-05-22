@@ -14,7 +14,7 @@ from celery.utils.log import get_logger
 
 from .tzcrontab import TzAwareCrontab
 from .session import ModelBase
-# from .literals import MICROSECONDS, SECONDS, MINUTES, HOURS
+
 
 logger = get_logger('celery_sqlalchemy_scheduler.models')
 
@@ -224,6 +224,7 @@ class PeriodicTask(ModelBase, ModelMixin):
     # task name
     task = sa.Column(sa.String(255))
 
+    # not use ForeignKey
     interval_id = sa.Column(sa.Integer)
     interval = relationship(
         IntervalSchedule,
@@ -245,34 +246,26 @@ class PeriodicTask(ModelBase, ModelMixin):
         primaryjoin=foreign(solar_id) == remote(SolarSchedule.id)
     )
 
-    # 参数
     args = sa.Column(sa.Text(), default='[]')
     kwargs = sa.Column(sa.Text(), default='{}')
-    # 队列
+    # queue for celery
     queue = sa.Column(sa.String(255))
-    # 交换器
+    # exchange for celery
     exchange = sa.Column(sa.String(255))
-    # 路由键
+    # routing_key for celery
     routing_key = sa.Column(sa.String(255))
-    # 优先级
     priority = sa.Column(sa.Integer())
-
     expires = sa.Column(sa.DateTime(timezone=True))
 
     # 只执行一次
     one_off = sa.Column(sa.Boolean(), default=False)
-    # 开始时间
     start_time = sa.Column(sa.DateTime(timezone=True))
-    # 使能/禁能
     enabled = sa.Column(sa.Boolean(), default=True)
-    # 最后运行时间
     last_run_at = sa.Column(sa.DateTime(timezone=True))
-    # 总运行次数
     total_run_count = sa.Column(sa.Integer(), nullable=False, default=0)
     # 修改时间
     date_changed = sa.Column(sa.DateTime(timezone=True),
                              default=func.now(), onupdate=func.now())
-    # 说明
     description = sa.Column(sa.Text(), default='')
 
     no_changes = False

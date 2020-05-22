@@ -72,25 +72,28 @@ from celery import schedules
 
 from celery_sqlalchemy_scheduler.schedulers import DatabaseScheduler  # noqa
 
-# 加载环境变量
+# load environment variable from .env
 from dotenv import load_dotenv
 dotenv_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '.env')
 if os.path.exists(dotenv_path):
     load_dotenv(dotenv_path, override=True)
 
+# for and convenient to test and modify
 # 可以在 examples/base 目录下创建 .env 文件，修改对应的变量
 ECHO_EVERY_MINUTE = os.getenv('ECHO_EVERY_MINUTE', '0')
 ECHO_EVERY_HOUR = os.getenv('ECHO_EVERY_HOUR', '8')
 
 if platform.system() == 'Windows':
-    # Celery在Windows环境下运行需要设置这个变量，否则调用任务会报错
+    # must set the environment variable in windows for celery,
+    # or else celery maybe don't work
     os.environ['FORKED_BY_MULTIPROCESSING'] = '1'
 
+# rabbitmq
 backend = 'rpc://'
 broker_url = 'amqp://guest:guest@127.0.0.1:5672//'
 
 
-# 如果数据库修改了下面的schedule，beat重启后数据库会被下面的配置覆盖
+# this scheduler will be reset after the celery beat restart
 beat_schedule = {
     'echo-every-3-seconds': {
         'task': 'tasks.echo',
@@ -127,15 +130,14 @@ beat_sync_every = 0
 # default: 0
 beat_max_loop_interval = 10
 
-# 非celery和beat的官方配置，配置 celery_sqlalchemy_scheduler 的数据库路径
+# configure celery_sqlalchemy_scheduler database uri
 beat_dburi = 'sqlite:///schedule.db'
 # beat_dburi = 'mysql+mysqlconnector://root:root@127.0.0.1/celery-schedule'
 
-# 配置时区
 timezone = 'Asia/Shanghai'
 
+# prevent memory leaks
 # 默认每个worker跑完10个任务后，自我销毁程序重建来释放内存
-# 防止内存泄漏
 worker_max_tasks_per_child = 10
 
 celery = Celery('tasks',
