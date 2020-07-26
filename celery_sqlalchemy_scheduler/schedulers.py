@@ -99,7 +99,7 @@ class ModelEntry(ScheduleEntry):
         self.last_run_at = model.last_run_at
 
         # 因为从数据库读取的 last_run_at 可能没有时区信息，所以这里必须加上时区信息
-        # self.last_run_at = self.last_run_at.replace(tzinfo=self.app.timezone)
+        self.last_run_at = self.last_run_at.replace(tzinfo=self.app.timezone)
 
         # self.options['expires'] 同理
         # if 'expires' in self.options:
