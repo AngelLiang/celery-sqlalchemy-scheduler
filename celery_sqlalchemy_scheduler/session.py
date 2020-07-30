@@ -35,7 +35,7 @@ class SessionManager(object):
         self._engines = {}
         self._sessions = {}
         self.forked = False
-        self.prepared = False
+        self.prepared = True
         if register_after_fork is not None:
             register_after_fork(self, _after_fork_cleanup_session)
 
