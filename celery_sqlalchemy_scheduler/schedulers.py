@@ -263,12 +263,10 @@ class ModelEntry(ScheduleEntry):
             'one_off': one_off,
         }
         if expires:
-            if isinstance(expires, int):
-                expires = dt.datetime.utcnow() + dt.timedelta(seconds=expires)
-            elif isinstance(expires, dt.datetime):
+            if isinstance(expires, (int, float)):
                 pass
             else:
-                raise ValueError('expires value error')
+                raise ValueError('expiration must be int or float')
             data['expires'] = expires
         return data
 

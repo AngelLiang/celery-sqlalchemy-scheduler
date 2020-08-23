@@ -255,7 +255,7 @@ class PeriodicTask(ModelBase, ModelMixin):
     # routing_key for celery
     routing_key = sa.Column(sa.String(255))
     priority = sa.Column(sa.Integer())
-    expires = sa.Column(sa.DateTime(timezone=True))
+    expires = sa.Column(sa.Float())
 
     # 只执行一次
     one_off = sa.Column(sa.Boolean(), default=False)
