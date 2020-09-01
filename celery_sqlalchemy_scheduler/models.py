@@ -53,8 +53,8 @@ class IntervalSchedule(ModelBase, ModelMixin):
 
     def __repr__(self):
         if self.every == 1:
-            return 'every {0.period_singular}'.format(self)
-        return 'every {0.every} {0.period}'.format(self)
+            return 'every {0}'.format(self.period_singular)
+        return 'every {0} {1}'.format(self.every, self.period)
 
     @property
     def schedule(self):
@@ -75,6 +75,7 @@ class IntervalSchedule(ModelBase, ModelMixin):
             session.commit()
         return model
 
+    @property
     def period_singular(self):
         return self.period[:-1]
 
