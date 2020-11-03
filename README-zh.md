@@ -9,14 +9,13 @@
 ### 依赖
 
 - Python 3
-- celery >= 4.2.0
+- celery >= 4.2, <5.0
 - sqlalchemy
 
-首先必须安装 `celery` 和 `sqlalchemy`, 并且`celery`应该大于等于 4.2.0 版本。
+首先必须安装 `celery` 和 `sqlalchemy`, 并且`celery`应该大于等于 4.2 版本且小于 5.0 版本。
 
 ```
-$ pip install celery
-$ pip install sqlalchemy
+$ pip install sqlalchemy celery<5.0
 ```
 
 ### 安装
