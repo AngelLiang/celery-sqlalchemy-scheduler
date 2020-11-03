@@ -9,7 +9,12 @@ Run Worker::
 
     # console 1 , in pipenv shell
     $ cd examples/base
+
+    # Celery < 5.0
     $ celery worker -A tasks:celery -l info
+
+    # Celery >= 5.0
+    $ celery -A tasks:celery
 
 Run Beat::
 
