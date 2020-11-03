@@ -79,7 +79,7 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
 
     install_requires=[
-        'celery>=4.2.0',
+        'celery>=4.2,<5.0',
         'sqlalchemy',
     ],
     zip_safe=False,
