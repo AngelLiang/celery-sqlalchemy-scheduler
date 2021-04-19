@@ -94,6 +94,28 @@ View `examples/base/tasks.py` for details.
 
 How to quickstart: https://github.com/AngelLiang/celery-sqlalchemy-scheduler/issues/15#issuecomment-625624088
 
+Run Worker in console 1
+
+    $ pipenv shell
+    $ cd examples/base
+
+    # Celery < 5.0
+    $ celery worker -A tasks:celery -l info
+
+    # Celery >= 5.0
+    $ celery -A tasks:celery worker -l info
+
+Run Beat in console 2
+
+    $ pipenv shell
+    $ cd examples/base
+
+    # Celery < 5.0
+    $ celery beat -A tasks:celery -S tasks:DatabaseScheduler -l info
+
+    # Celery >= 5.0
+    $ celery -A tasks:celery beat -S tasks:DatabaseScheduler -l info
+
 ## Example Code 2
 
 ### Example creating interval-based periodic task

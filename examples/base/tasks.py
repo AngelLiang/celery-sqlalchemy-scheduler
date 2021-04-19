@@ -3,23 +3,36 @@
 Ready::
 
     $ pipenv install
-    $ pipenv shell
 
 Run Worker::
 
     # console 1 , in pipenv shell
+    $ pipenv shell
     $ cd examples/base
+
+    # Celery < 5.0
     $ celery worker -A tasks:celery -l info
+
+    # Celery >= 5.0
+    $ celery -A tasks:celery worker -l info
 
 Run Beat::
 
     # console 2, in pipenv shell
+    $ pipenv shell
     $ cd examples/base
+
+    # Celery < 5.0
     $ celery beat -A tasks:celery -S tasks:DatabaseScheduler -l info
+
+    # Celery >= 5.0
+    $ celery -A tasks:celery beat -S tasks:DatabaseScheduler -l info
 
 Console 3::
 
     # console 3, in pipenv shell
+    $ pipenv shell
+    $ cd examples/base
     $ python -m doctest tasks.py
 
 

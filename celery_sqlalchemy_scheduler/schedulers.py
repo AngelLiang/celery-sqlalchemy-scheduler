@@ -8,10 +8,9 @@ import sqlalchemy
 from celery import current_app
 from celery import schedules
 from celery.beat import Scheduler, ScheduleEntry
-from celery.five import values, items
-from celery.utils.encoding import safe_str, safe_repr
 from celery.utils.log import get_logger
 from celery.utils.time import maybe_make_aware
+from kombu.utils.encoding import safe_repr, safe_str
 from kombu.utils.json import dumps, loads
 
 from .session import session_cleanup
@@ -384,7 +383,7 @@ class DatabaseScheduler(Scheduler):
 
     def update_from_dict(self, mapping):
         s = {}
-        for name, entry_fields in items(mapping):
+        for name, entry_fields in mapping.items():
             # {'task': 'celery.backend_cleanup',
             #  'schedule': schedules.crontab('0', '4', '*'),
             #  'options': {'expires': 43200}}
@@ -439,7 +438,7 @@ class DatabaseScheduler(Scheduler):
                 self._heap_invalidated = True
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug('Current schedule:\n%s', '\n'.join(
-                    repr(entry) for entry in values(self._schedule)),
+                    repr(entry) for entry in self._schedule.values()),
                 )
         # logger.debug(self._schedule)
         return self._schedule
