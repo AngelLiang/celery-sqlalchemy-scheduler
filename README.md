@@ -11,13 +11,13 @@ A Scheduler Based Sqlalchemy for Celery.
 ### Prerequisites
 
 - Python 3
-- celery >= 4.2, <5.0
+- celery >= 4.2
 - sqlalchemy
 
-First you must install `celery` and `sqlalchemy`, and `celery` should be >=4.2.0 and <5.0.
+First you must install `celery` and `sqlalchemy`, and `celery` should be >=4.2.0.
 
 ```
-$ pip install sqlalchemy celery<5.0
+$ pip install sqlalchemy celery
 ```
 
 ### Installing
