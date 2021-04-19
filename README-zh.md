@@ -87,7 +87,35 @@ beat_dburi = 'mysql+mysqlconnector://root:root@127.0.0.1:3306/celery-schedule'
 beat_dburi = 'postgresql+psycopg2://postgres:postgres@127.0.0.1:5432/celery-schedule'
 ```
 
-## 完整示例代码
+## 示例代码一
+
+可以查看 `examples/base/tasks.py` 代码获取相关细节说明
+
+相关讨论：https://github.com/AngelLiang/celery-sqlalchemy-scheduler/issues/15#issuecomment-625624088
+
+开一个console，启动 Celery Worker
+
+    $ pipenv shell
+    $ cd examples/base
+
+    # Celery < 5.0
+    $ celery worker -A tasks:celery -l info
+
+    # Celery >= 5.0
+    $ celery -A tasks:celery worker -l info
+
+开第二个console，启动 Celery Beat
+
+    $ pipenv shell
+    $ cd examples/base
+
+    # Celery < 5.0
+    $ celery beat -A tasks:celery -S tasks:DatabaseScheduler -l info
+
+    # Celery >= 5.0
+    $ celery -A tasks:celery beat -S tasks:DatabaseScheduler -l info
+
+## 示例代码二
 
 ### `examples/base/tasks.py`
 
