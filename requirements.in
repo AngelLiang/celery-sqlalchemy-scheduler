@@ -1,5 +1,0 @@
-# From official PyPI (https://pypi.org/)
-# ======================================
-celery>=4.2
-mysql-connector
-sqlalchemy~=1.4

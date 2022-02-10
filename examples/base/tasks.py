@@ -78,29 +78,17 @@ Add add-every-10s
 """
 import datetime as dt
 import os
-import platform
 from datetime import timedelta
 
 from celery import Celery, schedules
 
-# load environment variable from .env
-from dotenv import load_dotenv
-
 from celery_sqlalchemy_scheduler.schedulers import DatabaseScheduler  # noqa
-
-dotenv_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), ".env")
-if os.path.exists(dotenv_path):
-    load_dotenv(dotenv_path, override=True)
 
 # for and convenient to test and modify
 # 可以在 examples/base 目录下创建 .env 文件，修改对应的变量
 ECHO_EVERY_MINUTE = os.getenv("ECHO_EVERY_MINUTE", "0")
 ECHO_EVERY_HOUR = os.getenv("ECHO_EVERY_HOUR", "8")
 
-if platform.system() == "Windows":
-    # must set the environment variable in windows for celery,
-    # or else celery maybe don't work
-    os.environ["FORKED_BY_MULTIPROCESSING"] = "1"
 
 # rabbitmq
 backend = "rpc://"
