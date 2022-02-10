@@ -52,7 +52,9 @@ Console 3::
 >>> session.commit()
 
 
->>> schedule = session.query(IntervalSchedule).filter_by(every=10, period=IntervalSchedule.SECONDS).first()
+>>> schedule = session.query(IntervalSchedule)
+                      .filter_by(every=10, period=IntervalSchedule.SECONDS)
+                      .first()
 >>> if not schedule:
 ...     schedule = IntervalSchedule(every=10, period=IntervalSchedule.SECONDS)
 ...     session.add(schedule)
@@ -74,68 +76,56 @@ Add add-every-10s
 >>> session.add(task)
 >>> session.commit()
 """
-import os
-import time
-import platform
 import datetime as dt
+import os
 from datetime import timedelta
 
-from celery import Celery
-from celery import schedules
+from celery import Celery, schedules
 
 from celery_sqlalchemy_scheduler.schedulers import DatabaseScheduler  # noqa
 
-# load environment variable from .env
-from dotenv import load_dotenv
-dotenv_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '.env')
-if os.path.exists(dotenv_path):
-    load_dotenv(dotenv_path, override=True)
-
 # for and convenient to test and modify
 # 可以在 examples/base 目录下创建 .env 文件，修改对应的变量
-ECHO_EVERY_MINUTE = os.getenv('ECHO_EVERY_MINUTE', '0')
-ECHO_EVERY_HOUR = os.getenv('ECHO_EVERY_HOUR', '8')
+ECHO_EVERY_MINUTE = os.getenv("ECHO_EVERY_MINUTE", "0")
+ECHO_EVERY_HOUR = os.getenv("ECHO_EVERY_HOUR", "8")
 
-if platform.system() == 'Windows':
-    # must set the environment variable in windows for celery,
-    # or else celery maybe don't work
-    os.environ['FORKED_BY_MULTIPROCESSING'] = '1'
 
 # rabbitmq
-backend = 'rpc://'
-broker_url = 'amqp://guest:guest@127.0.0.1:5672//'
+backend = "rpc://"
+broker_url = "amqp://guest:guest@127.0.0.1:5672//"
 
 
 # this scheduler will be reset after the celery beat restart
 beat_schedule = {
-    'echo-every-3-seconds': {
-        'task': 'tasks.echo',
-        'schedule': timedelta(seconds=3),
-        'args': ('hello', ),
-        'options': {
-            'expires': dt.datetime.utcnow() + timedelta(seconds=10)  # right
+    "echo-every-3-seconds": {
+        "task": "tasks.echo",
+        "schedule": timedelta(seconds=3),
+        "args": ("hello",),
+        "options": {
+            "expires": dt.datetime.utcnow()
+            + timedelta(seconds=10)  # right
             # 'expires': dt.datetime.now() + timedelta(seconds=30)  # error
             # 'expires': 10  # right
-        }
+        },
     },
-    'add-every-minutes': {
-        'task': 'tasks.add',
-        'schedule': schedules.crontab('*', '*', '*'),
-        'args': (1, 2)
+    "add-every-minutes": {
+        "task": "tasks.add",
+        "schedule": schedules.crontab("*", "*", "*"),
+        "args": (1, 2),
     },
-    'echo-every-hours': {
-        'task': 'tasks.echo',
-        'schedule': schedules.crontab(ECHO_EVERY_MINUTE, '*', '*'),
-        'args': ('echo-every-hours',)
+    "echo-every-hours": {
+        "task": "tasks.echo",
+        "schedule": schedules.crontab(ECHO_EVERY_MINUTE, "*", "*"),
+        "args": ("echo-every-hours",),
     },
-    'echo-every-days': {
-        'task': 'tasks.echo',
-        'schedule': schedules.crontab(ECHO_EVERY_MINUTE, ECHO_EVERY_HOUR, '*'),
-        'args': ('echo-every-days',)
+    "echo-every-days": {
+        "task": "tasks.echo",
+        "schedule": schedules.crontab(ECHO_EVERY_MINUTE, ECHO_EVERY_HOUR, "*"),
+        "args": ("echo-every-days",),
     },
 }
 
-beat_scheduler = 'celery_sqlalchemy_scheduler.schedulers:DatabaseScheduler'
+beat_scheduler = "celery_sqlalchemy_scheduler.schedulers:DatabaseScheduler"
 
 beat_sync_every = 0
 
@@ -144,27 +134,24 @@ beat_sync_every = 0
 beat_max_loop_interval = 10
 
 # configure celery_sqlalchemy_scheduler database uri
-beat_dburi = 'sqlite:///schedule.db'
+beat_dburi = "sqlite:///schedule.db"
 # beat_dburi = 'mysql+mysqlconnector://root:root@127.0.0.1/celery-schedule'
 
-timezone = 'Asia/Shanghai'
+timezone = "Asia/Shanghai"
 
 # prevent memory leaks
 # 默认每个worker跑完10个任务后，自我销毁程序重建来释放内存
 worker_max_tasks_per_child = 10
 
-celery = Celery('tasks',
-                backend=backend,
-                broker=broker_url)
+celery = Celery("tasks", backend=backend, broker=broker_url)
 
 config = {
-    'beat_schedule': beat_schedule,
+    "beat_schedule": beat_schedule,
     # 'beat_scheduler': beat_scheduler,  # 命令行传参配置了，所以这里并不需要写死在代码里
-    'beat_max_loop_interval': beat_max_loop_interval,
-    'beat_dburi': beat_dburi,
-
-    'timezone': timezone,
-    'worker_max_tasks_per_child': worker_max_tasks_per_child
+    "beat_max_loop_interval": beat_max_loop_interval,
+    "beat_dburi": beat_dburi,
+    "timezone": timezone,
+    "worker_max_tasks_per_child": worker_max_tasks_per_child,
 }
 
 celery.conf.update(config)

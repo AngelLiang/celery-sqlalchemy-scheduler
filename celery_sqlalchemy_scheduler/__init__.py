@@ -1,10 +1,12 @@
 # coding=utf-8
 # flake8:noqa
 
-from .session import SessionManager
 from .models import (
-    PeriodicTask, PeriodicTaskChanged,
-    CrontabSchedule, IntervalSchedule,
+    CrontabSchedule,
+    IntervalSchedule,
+    PeriodicTask,
+    PeriodicTaskChanged,
     SolarSchedule,
 )
 from .schedulers import DatabaseScheduler
+from .session import SessionManager

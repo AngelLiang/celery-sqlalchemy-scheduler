@@ -1,0 +1,7 @@
+# lint
+black
+flake8 >= 3.8.0
+flynt
+isort >= 5
+yamllint
+pipenv
