@@ -193,7 +193,7 @@ class ModelEntry(ScheduleEntry):
                 # TODO:
                 model_schedule = model_type.from_schedule(session, schedule)
                 return model_schedule, model_field
-        raise ValueError("Cannot convert schedule type {schedule!r} to model")
+        raise ValueError(f"Cannot convert schedule type {schedule!r} to model")
 
     @classmethod
     def from_entry(cls, name, Session, app=None, **entry):
@@ -277,8 +277,11 @@ class ModelEntry(ScheduleEntry):
         return data
 
     def __repr__(self):
-        return f"""<ModelEntry: {safe_str(self.name)} {self.task}(*{safe_repr(self.args)}, \
-            **{safe_repr(self.kwargs)}) {self.schedule}>"""
+        return (
+            f"<ModelEntry: {safe_str(self.name)} "
+            f"{self.task}(*{safe_repr(self.args)}, "
+            f"**{safe_repr(self.kwargs)}) {self.schedule}>"
+        )
 
 
 class DatabaseScheduler(Scheduler):

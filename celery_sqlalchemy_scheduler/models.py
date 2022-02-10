@@ -89,9 +89,11 @@ class CrontabSchedule(ModelBase, ModelMixin):
     timezone = sa.Column(sa.String(64), default="UTC")
 
     def __repr__(self):
-        return f"""{cronexp(self.minute)} {cronexp(self.hour)} {cronexp(self.day_of_week)} \
-            {cronexp(self.day_of_month)} {cronexp(self.month_of_year)} (m/h/d/dM/MY) \
-            {str(self.timezone)}"""
+        return (
+            f"{cronexp(self.minute)} {cronexp(self.hour)} "
+            f"{cronexp(self.day_of_week)} {cronexp(self.day_of_month)} "
+            f"{cronexp(self.month_of_year)} (m/h/d/dM/MY) {str(self.timezone)}"
+        )
 
     @property
     def schedule(self):
