@@ -1,0 +1,29 @@
+name: Publish Package
+
+on: [push]
+
+jobs:
+  publish:
+    name: PyPI Release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Install Packaging Tools
+      run: pip install --upgrade setuptools wheel twine
+
+    - name: Package Distributions
+      run: python setup.py sdist bdist_wheel
+
+    - name: Publish to PyPI
+      if: startsWith(github.event.ref, 'refs/tags')
+      run: twine upload --password "" dist/*
+      env:
+        TWINE_USERNAME: ${{ secrets.FURY_AUTH_PUSH }}
+        TWINE_REPOSITORY_URL: https://pypi.fury.io/aruba-uxi/

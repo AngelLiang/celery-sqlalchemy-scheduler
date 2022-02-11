@@ -1,70 +1,41 @@
-# celery-sqlalchemy-scheduler
+
+[![code](https://github.com/aruba-uxi/celery-sqlalchemy-scheduler/actions/workflows/lint-test-code.yaml/badge.svg)](https://github.com/aruba-uxi/celery-sqlalchemy-scheduler/actions/workflows/lint-test-code.yaml)
+
+[![Python Version](https://img.shields.io/badge/python-3.10-blue?logo=Python&logoColor=yellow)](https://docs.python.org/3.10/)
+
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Build: just](https://img.shields.io/badge/%F0%9F%A4%96%20build-just-black?labelColor=white)](https://just.systems/)
+
+
+# celery sqlalchemy scheduler
 
 A Scheduler Based Sqlalchemy for Celery.
 
-> NOTE: At first I developed this project for flask with celery to change scheduler from database, like [django-celery-beat](https://github.com/celery/django-celery-beat) for django. And now I maybe haven't time to develop for new feature. No new feature develop plan for it. Just fix bugs. If someone found some bugs, welcome to issue or PR. Thank you for your attention.
+## Table Of Contents
 
-## Getting Started
+- [Setup](#setup)
+- [Development](#development)
+- [Examples](#example-code-1)
+- [Version Control](#version-control)
+- [Deployment](#deployment)
+- [Workflows](#workflows)
 
-[English](/README.md) [中文文档](/README-zh.md)
+## Setup
 
-### Prerequisites
+This project is setup to use [editorconfig](https://editorconfig.org/). Most editors work but some require a plugin like [VSCode](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig)
 
-- Python 3
-- celery >= 4.2
-- sqlalchemy
+It's advisable to create a virtual environment for this project to keep packages separate.
+> **__NOTE__:** Using pyenv, you can run `pyenv virtualenv 3.10.<latest> celery-sqlalchemy-scheduler`
 
-First you must install `celery` and `sqlalchemy`, and `celery` should be >=4.2.0.
+After creating a virtual environment, install the required dependencies.
 
+```sh
+just setup-dev
 ```
-$ pip install sqlalchemy celery
-```
-
-### Installing
-
-Install from PyPi:
-
-```
-$ pip install celery-sqlalchemy-scheduler
-```
-
-Install from source by cloning this repository:
-
-```
-$ git clone git@github.com:AngelLiang/celery-sqlalchemy-scheduler.git
-$ cd celery-sqlalchemy-scheduler
-$ python setup.py install
-```
-
-## Usage
-
-After you have installed `celery_sqlalchemy_scheduler`, you can easily start with following steps:
-
-This is a demo for exmaple, you can check the code in `examples` directory
-
-1. start celery worker
-
-   ```
-   $ celery worker -A tasks -l info
-   ```
-
-2. start the celery beat with `DatabaseScheduler` as scheduler:
-
-   ```
-   $ celery beat -A tasks -S celery_sqlalchemy_scheduler.schedulers:DatabaseScheduler -l info
-   ```
-
-## Description
-
-After the celery beat is started, by default it create a sqlite database(`schedule.db`) in current folder. You can use `SQLiteStudio.exe` to inspect it.
-
-![sqlite](screenshot/sqlite.png)
-
-When you want to update scheduler, you can update the data in `schedule.db`. But `celery_sqlalchemy_scheduler` don't update the scheduler immediately. Then you shoule be change the first column's `last_update` field in the `celery_periodic_task_changed` to now datetime. Finally the celery beat will update scheduler at next wake-up time.
 
 ### Database Configuration
 
-You can configure sqlalchemy db uri when you configure the celery, example as:
+You can configure sqlalchemy db uri when you configure the celery, for example as:
 
 ```Python
 from celery import Celery
@@ -87,6 +58,32 @@ beat_dburi = 'mysql+mysqlconnector://root:root@127.0.0.1:3306/celery-schedule'
 # PostgreSQL: `pip install psycopg2`
 beat_dburi = 'postgresql+psycopg2://postgres:postgres@127.0.0.1:5432/celery-schedule'
 ```
+
+
+## Development
+
+After you have installed `celery_sqlalchemy_scheduler`, you can easily start with following steps:
+
+This is a demo - you can check the code in the `examples` directory.
+
+1. start celery worker
+
+   ```
+   $ celery worker -A tasks -l info
+   ```
+
+2. start the celery beat with `DatabaseScheduler` as scheduler:
+
+   ```
+   $ celery beat -A tasks -S celery_sqlalchemy_scheduler.schedulers:DatabaseScheduler -l info
+   ```
+
+### Tip
+After the celery beat is started, by default it creates a sqlite database(`schedule.db`) in the current folder. You can use `SQLiteStudio.exe` to inspect it.
+
+![sqlite](screenshot/sqlite.png)
+
+When you want to update scheduler, you can update the data in `schedule.db`. But `celery_sqlalchemy_scheduler` won't update the scheduler immediately. Then you should change the first column's `last_update` field in the `celery_periodic_task_changed` to now datetime. Finally the celery beat will update scheduler at the next wake-up time.
 
 ## Example Code 1
 
@@ -171,7 +168,7 @@ Note that this is a very basic example, you can also specify the
 arguments and keyword arguments used to execute the task, the `queue` to
 send it to[\*], and set an expiry time.
 
-Here\'s an example specifying the arguments, note how JSON serialization
+Here's an example specifying the arguments, note how JSON serialization
 is required:
 
     >>> import json
@@ -194,7 +191,7 @@ is required:
 
 A crontab schedule has the fields: `minute`, `hour`, `day_of_week`,
 `day_of_month` and `month_of_year`, so if you want the equivalent of a
-`30 * * * *` (execute every 30 minutes) crontab entry you specify:
+`30 * * * *` (execute every 30 minutes) crontab entry, you specify:
 
     >>> from celery_sqlalchemy_scheduler.models import PeriodicTask, CrontabSchedule
     >>> schedule = CrontabSchedule(
@@ -231,7 +228,7 @@ You can use the `enabled` flag to temporarily disable a periodic task:
 
 > Note: If you want to delete `PeriodicTask`, don't use `.delete()` method on a query
 > such as `db.session.query(PeriodicTask).filter(PeriodicTask.id == task_id).delete()`.
-> Because it doesn't trigger the `after_delete` event listener and result in Error.
+> Because it doesn't trigger the `after_delete` event listener and results in Error.
 > The correct deletion method is using session to delete `PeriodicTask` object.
 
     >>> db.session.delete(db.session.query(PeriodicTask).get(task_id))
@@ -255,8 +252,39 @@ Both the worker and beat services need to be running at the same time.
 
         $ celery -A [project-name] beat -l info --scheduler celery_sqlalchemy_scheduler.schedulers:DatabaseScheduler
 
+
+## Version Control
+
+This repo follows the [SemVer 2](https://semver.org/) version format.
+
+Given a version number `MAJOR.MINOR.PATCH`, increment the:
+
+- `MAJOR` version when you make incompatible API changes,
+- `MINOR` version when you add functionality in a backwards compatible manner, and
+- `PATCH` version when you make backwards compatible bug fixes.
+
+## Workflows
+
+The repository has a number of github workflows defined in the the `.github/workflows` folder.
+
+### Lint Charts
+
+- Tests helm charts for linting and changes
+
+### Lint & Test Code
+
+- Tests the code for linting issues
+- Tests the requirements file for any changes
+
+### Release
+
+- Pushes the client to internal gemfury account
+
+
+
 ## Acknowledgments
 
 - [django-celery-beat](https://github.com/celery/django-celery-beat)
 - [celerybeatredis](https://github.com/liuliqiang/celerybeatredis)
 - [celery](https://github.com/celery/celery)
+- [celery-sqlalchemy-scheduler](https://github.com/AngelLiang/celery-sqlalchemy-scheduler)

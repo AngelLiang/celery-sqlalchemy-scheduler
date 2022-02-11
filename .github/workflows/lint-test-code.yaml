@@ -1,0 +1,31 @@
+name: Lint & Test Code
+
+on: [push]
+
+jobs:
+  lint-test-code:
+    name: Lint & Test Code
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.10"
+
+    - name: Setup Just
+      uses: extractions/setup-just@v1
+
+    - name: Install Dependencies
+      run: just setup-dev
+
+    - name: Run Code Linting Test
+      run: just lint
+
+    # TODO: will uncomment once transitioned from pipfile to requirements.in
+    # - name: Check Requirements File Up-To-Date
+    #   run: |
+    #     just requirements
+    #     git diff --exit-code -- requirements.txt

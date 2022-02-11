@@ -23,12 +23,10 @@ requirements:
 
 # Setup requirements
 setup:
-	@just requirements
 	pip install -r requirements.txt
 
 # Setup dev requirements
 setup-dev:
-	@just requirements
 	pip install -r requirements.txt -r dev-requirements.in
 
 # Auto-format the code
@@ -43,3 +41,4 @@ lint:
 	flynt --dry-run --fail-on-change --quiet .
 	isort --diff --check .
 	black --diff --check .
+	yamllint .
