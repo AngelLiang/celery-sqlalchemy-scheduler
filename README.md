@@ -11,14 +11,13 @@ A Scheduler Based Sqlalchemy for Celery.
 ### Prerequisites
 
 - Python 3
-- celery >= 4.2.0
+- celery >= 4.2
 - sqlalchemy
 
 First you must install `celery` and `sqlalchemy`, and `celery` should be >=4.2.0.
 
 ```
-$ pip install celery
-$ pip install sqlalchemy
+$ pip install sqlalchemy celery
 ```
 
 ### Installing
@@ -95,6 +94,28 @@ View `examples/base/tasks.py` for details.
 
 How to quickstart: https://github.com/AngelLiang/celery-sqlalchemy-scheduler/issues/15#issuecomment-625624088
 
+Run Worker in console 1
+
+    $ pipenv shell
+    $ cd examples/base
+
+    # Celery < 5.0
+    $ celery worker -A tasks:celery -l info
+
+    # Celery >= 5.0
+    $ celery -A tasks:celery worker -l info
+
+Run Beat in console 2
+
+    $ pipenv shell
+    $ cd examples/base
+
+    # Celery < 5.0
+    $ celery beat -A tasks:celery -S tasks:DatabaseScheduler -l info
+
+    # Celery >= 5.0
+    $ celery -A tasks:celery beat -S tasks:DatabaseScheduler -l info
+
 ## Example Code 2
 
 ### Example creating interval-based periodic task
@@ -122,14 +143,13 @@ That's all the fields you need: a period type and the frequency.
 
 You can choose between a specific set of periods:
 
+- `IntervalSchedule.DAYS`
+- `IntervalSchedule.HOURS`
+- `IntervalSchedule.MINUTES`
+- `IntervalSchedule.SECONDS`
+- `IntervalSchedule.MICROSECONDS`
 
--   `IntervalSchedule.DAYS`
--   `IntervalSchedule.HOURS`
--   `IntervalSchedule.MINUTES`
--   `IntervalSchedule.SECONDS`
--   `IntervalSchedule.MICROSECONDS`
-
-*note*:
+_note_:
 
     If you have multiple periodic tasks executing every 10 seconds,
     then they should all point to the same schedule object.
@@ -154,7 +174,6 @@ send it to[\*], and set an expiry time.
 Here\'s an example specifying the arguments, note how JSON serialization
 is required:
 
-
     >>> import json
     >>> from datetime import datetime, timedelta
 
@@ -170,7 +189,6 @@ is required:
     ... )
     ... session.add(periodic_task)
     ... session.commit()
-
 
 ### Example creating crontab-based periodic task
 
@@ -211,6 +229,14 @@ You can use the `enabled` flag to temporarily disable a periodic task:
     >>> session.add(periodic_task)
     >>> session.commit()
 
+> Note: If you want to delete `PeriodicTask`, don't use `.delete()` method on a query
+> such as `db.session.query(PeriodicTask).filter(PeriodicTask.id == task_id).delete()`.
+> Because it doesn't trigger the `after_delete` event listener and result in Error.
+> The correct deletion method is using session to delete `PeriodicTask` object.
+
+    >>> db.session.delete(db.session.query(PeriodicTask).get(task_id))
+    >>> db.session.commit()
+
 ### Example running periodic tasks
 
 The periodic tasks still need 'workers' to execute them. So make sure
@@ -224,12 +250,10 @@ Both the worker and beat services need to be running at the same time.
 
         $ celery -A [project-name] worker --loglevel=info
 
-2.  As a separate process, start the beat service (specify the 
+2.  As a separate process, start the beat service (specify the
     scheduler):
 
         $ celery -A [project-name] beat -l info --scheduler celery_sqlalchemy_scheduler.schedulers:DatabaseScheduler
-
-
 
 ## Acknowledgments
 
