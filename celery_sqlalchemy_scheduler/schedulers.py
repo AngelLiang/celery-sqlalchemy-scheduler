@@ -444,5 +444,4 @@ class DatabaseScheduler(Scheduler):
     @property
     def info(self):
         """override"""
-        # return infomation about Schedule
-        return '    . db -> {self.dburi}'.format(self=self)
+        return ''
